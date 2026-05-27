@@ -22,7 +22,6 @@
       color: #0a0f1c;
     }
 
-    /* Unified header - clean, no truck logo */
     .unified-header {
       background: #111;
       padding: 15px 0;
@@ -66,7 +65,6 @@
       color: #f78e06;
     }
 
-    /* stock specific styles - no main header */
     .filters-panel {
       background: white;
       padding: 1.5rem 1.5rem;
@@ -187,7 +185,6 @@
     }
     .in-stock-tag { background: #10b981; color: white; }
     .low-stock-tag { background: #f59e0b; color: #1e1b0e; }
-    .out-stock-tag { background: #6b7280; color: white; }
 
     .card-body {
       padding: 1.5rem;
@@ -275,7 +272,6 @@
 </head>
 <body>
 
-<!-- Unified header - clean, no truck logo -->
 <div class="unified-header">
   <div class="container">
     <div class="logo">HEADWAY <span>TYRES</span></div>
@@ -316,631 +312,77 @@
 
 <script>
   // ============================================================
-  // COMPLETE INVENTORY from CSV
-  // Every tyre includes: brand, model, size, vehicle, qty1, qty4
-  // Out-of-stock (total = 0) are hidden by default but stored
+  // SIMPLIFIED STOCK PAGE - READS FROM localStorage ONLY
+  // No hardcoded CSV_DATA override
   // ============================================================
 
-  // Helper to detect vehicle category from tyre size/description
+  // Helper to detect vehicle category
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
     
-    // Truck/Bus patterns
     if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5') || sizeUpper.includes('R17.5') ||
         sizeUpper.includes('R20') && (parseInt(sizeUpper) >= 8 || modelUpper.includes('TRUCK')) ||
-        sizeUpper.match(/^\d+\.\d+R\d+/) || sizeUpper.includes('R16LT') && parseInt(sizeUpper) >= 205 ||
         modelUpper.includes('TRUCK') || modelUpper.includes('BUS') || modelUpper.includes('REGIONAL') ||
-        modelUpper.includes('LONGHAUL') || modelUpper.includes('ON/OFF') || modelUpper.includes('ALL-POSITION') ||
-        sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5')) {
+        modelUpper.includes('LONGHAUL') || modelUpper.includes('ON/OFF') || modelUpper.includes('ALL-POSITION')) {
       return "Truck";
     }
     
-    // Agricultural patterns
     if (modelUpper.includes('TRACTOR') || modelUpper.includes('AGRI') || sizeUpper.includes('R24') || 
         sizeUpper.includes('R28') || sizeUpper.includes('R34') || sizeUpper.includes('R-1') ||
         sizeUpper.match(/^\d+\.\d+-\d+/) && !sizeUpper.includes('R')) {
       return "Agricultural";
     }
     
-    // Industrial/Machine patterns
     if (modelUpper.includes('LOADER') || modelUpper.includes('INDUSTRIAL') || modelUpper.includes('L5') ||
         sizeUpper.includes('L5') || sizeUpper.includes('E3') || sizeUpper.includes('L3') ||
-        modelUpper.includes('JCB') || sizeUpper.includes('R25') && parseInt(sizeUpper) >= 15 ||
-        modelUpper.includes('SKID') || modelUpper.includes('TELEHANDLER')) {
+        modelUpper.includes('JCB') || sizeUpper.includes('R25') && parseInt(sizeUpper) >= 15) {
       return "Machine";
     }
     
-    // SUV/4x4 patterns
     if (modelUpper.includes('SUV') || modelUpper.includes('A/T') || modelUpper.includes('M/T') || 
         modelUpper.includes('AT-M') || modelUpper.includes('TERRAMAX') || modelUpper.includes('RUGGED') ||
-        modelUpper.includes('HISCEND-H HT') || modelUpper.includes('MONTARE') ||
         (sizeUpper.includes('LT') && !sizeUpper.includes('C')) ||
         (parseInt(sizeUpper) >= 235 && sizeUpper.includes('R') && !sizeUpper.includes('C'))) {
       return "SUV";
     }
     
-    // Default to Car
     return "Car";
   }
 
-  // Function to get realistic generic tyre images based on category and size
+  // Get tyre image
   function getTyreImage(size, vehicle, brand) {
     const sizeStr = String(size).toLowerCase();
     
-    // Car tyres - realistic tyre photos
     if (vehicle === "Car" || sizeStr.includes('175/') || sizeStr.includes('185/') || sizeStr.includes('195/') || sizeStr.includes('205/55')) {
       return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
     }
-    // SUV / 4x4 tyres
     if (vehicle === "SUV" || sizeStr.includes('235/') || sizeStr.includes('245/') || sizeStr.includes('255/') || sizeStr.includes('265/') || sizeStr.includes('R16') || sizeStr.includes('R17') || sizeStr.includes('R18') || sizeStr.includes('LT')) {
       return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format';
     }
-    // Truck tyres
     if (vehicle === "Truck" || sizeStr.includes('R22.5') || sizeStr.includes('R19.5') || sizeStr.includes('R20') || sizeStr.includes('R16LT')) {
       return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=500&auto=format';
     }
-    // Agricultural tyres
     if (vehicle === "Agricultural") {
       return 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7e4c?w=500&auto=format';
     }
-    // Machine / Industrial tyres
     if (vehicle === "Machine") {
       return 'https://images.unsplash.com/photo-1573681649908-3f5a2a5da8f7?w=500&auto=format';
     }
     
-    // Fallback by brand
-    const brandLower = String(brand).toLowerCase();
-    if (brandLower === 'sailun') return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
-    if (brandLower === 'blackhawk') return 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&auto=format';
-    if (brandLower === 'comforser') return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format';
-    if (brandLower === 'headway') return 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=500&auto=format';
     return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
   }
 
-  // ============================================================
-  // PARSE CSV DATA (complete from the CSV file)
-  // CSV columns: Item Description, Size, Qty 1, Qty 4
-  // ============================================================
-  
-  function parseCSVToInventory(csvText) {
-    const lines = csvText.split(/\r?\n/);
-    const inventory = [];
-    let startRow = 0;
-    
-    // Check if first line has headers
-    if (lines[0] && (lines[0].toLowerCase().includes('item description') || lines[0].toLowerCase().includes('description'))) {
-      startRow = 1;
-    }
-    
-    for (let i = startRow; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      // Parse CSV line (handles quotes)
-      const columns = [];
-      let current = '';
-      let inQuotes = false;
-      for (let j = 0; j < line.length; j++) {
-        const char = line[j];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          columns.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      columns.push(current.trim());
-      
-      if (columns.length < 2) continue;
-      
-      let description = columns[0] || '';
-      let size = columns[1] || '';
-      let qty1 = (columns.length > 2) ? (parseInt(columns[2], 10) || 0) : 0;
-      let qty4 = (columns.length > 3) ? (parseInt(columns[3], 10) || 0) : 0;
-      
-      // Clean up
-      description = description.replace(/^["']|["']$/g, '');
-      size = size.replace(/^["']|["']$/g, '');
-      
-      // Keep negative quantities as they are (for admin updates)
-      // Only skip if no description or size
-      if (!description || description.length < 2) continue;
-      if (!size || size === "VARIOUS" || size === "ASSORTED") continue;
-      
-      // Extract brand from description
-      let brand = "Headway";
-      const brandMatch = description.match(/^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER)/i);
-      
-      if (brandMatch) {
-        brand = brandMatch[0].charAt(0).toUpperCase() + brandMatch[0].slice(1).toLowerCase();
-      } else if (description.includes("SAILUN")) brand = "Sailun";
-      else if (description.includes("BLACKHAWK")) brand = "Blackhawk";
-      else if (description.includes("COMFORSER")) brand = "Comforser";
-      else if (description.includes("HEADWAY")) brand = "Headway";
-      else if (description.includes("ROVELO") || description.includes("ROVELLO")) brand = "Rovello";
-      else if (description.includes("DYNAMO")) brand = "Dynamo";
-      else if (description.includes("ROADCRUZA")) brand = "Roadcruza";
-      else if (description.includes("TRUEFAST")) brand = "Truefast";
-      
-      // Clean model name
-      let model = description.replace(new RegExp(brand, 'i'), '').trim();
-      if (!model) model = description.substring(0, 80);
-      if (model.length > 80) model = model.substring(0, 77) + "...";
-      
-      // Skip non-tyre items (services, batteries, patches, etc.)
-      const skipKeywords = ["FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", 
-        "LABOUR", "VULCANIZING", "CEMENT", "SOLUTION", "BUFFING", "SPREADER", "VALVE", "PLUG",
-        "CABLE", "RIM", "BATTERY", "TUBE", "FLAP", "STONE", "WHEEL", "CLEANER", "SCRAPER",
-        "DRILL", "STITCHER", "EXTENSION", "CORE", "GAITER", "CUSHION", "NYLON", "CEMENT",
-        "INSPECTION", "MACHINE", "VULCANIZER", "ADHESIVE", "WEIGHTS", "HOT PATCH"];
-      
-      let isService = false;
-      for (const kw of skipKeywords) {
-        if (model.toUpperCase().includes(kw) || description.toUpperCase().includes(kw)) {
-          isService = true;
-          break;
-        }
-      }
-      if (isService) continue;
-      
-      // Determine vehicle category
-      const vehicle = detectVehicleCategory(brand, model, size);
-      
-      inventory.push({
-        brand: brand,
-        model: model,
-        size: size,
-        vehicle: vehicle,
-        qty1: qty1,
-        qty4: qty4
-      });
-    }
-    
-    return inventory;
+  // Global inventory variable
+  let currentInventory = [];
+
+  function getTotalQty(tyre) {
+    return (tyre.qty1 || 0) + (tyre.qty4 || 0);
   }
 
-  // ============================================================
-  // COMPLETE CSV DATA (full from the provided file)
-  // ============================================================
-  const CSV_DATA = `﻿Item Description,Size,Qty 1,Qty 4
-SAILUN 155R12C EXTMILE SL17 88/86P 8PR,155R12C,0,0
-SAILUN 445/65R22.5 S696 (REGIONAL STEER) 169K 20PR,445/65R22.5,0,0
-BLACKHAWK 385/65R22.5 BTR60 (REGIONAL ALL-POSITION) 160K 20PR,385/65R22.5,0,0
-SAILUN 315/80R22.5 SDR11 (REGIONAL DRIVE) 156/153L 20PR,315/80R22.5,0,0
-BLACKHAWK 315/80R22.5 BDR75 (REGIONAL DRIVE) 156/153L 20PR,315/80R22.5,0,0
-SAILUN 315/80R22.5 S811 (ON/OFF ROAD ALL-POSITION) 156/153K 20PR,315/80R22.5,0,0
-BLACKHAWK 315/80R22.5 BAM01 (ON/OFF ROAD ALL-POSITION) 156/153K 20PR,315/80R22.5,0,0
-ROVELO 295/80R22.5 RDR37 (REGIONAL DRIVE) 152/149L 18PR,295/80R22.5,0,0
-BLACKHAWK 12R22.5 BDR75 (REGIONAL DRIVE) 152/148L 18PR,12R22.5,0,1
-BLACKHAWK 11R22.5 BFR55 FST (REGIONAL STEER) 148/145L 16PR,11R22.5,0,0
-SAILUN 265/70R19.5 S637 (REGIONAL ALL-POSITION) 143/141J 18PR,265/70R19.5,0,0
-SAILUN 245/70R19.5 S702 (REGIONAL DRIVE) 136/134M 16PR,245/70R19.5,0,0
-SAILUN 285/30R19 ATREZZO ZSR2 98Y XL,285/30R19,2,0
-SAILUN 255/50R18 ATREZZO R01 SPORT 106V XL,255/50R18,7,0
-SAILUN 245/45R18 ATREZZO ZSR2 100Y XL,245/45R18,0,0
-BLACKHAWK 235/55R18 HISCEND-H HV61 104V XL,235/55R18,1,0
-SAILUN 235/55R18 ATREZZO ZSR SUV 100V,235/55R18,12,1
-SAILUN 225/40R18 ATREZZO ZSR2 92Y XL,225/40R18,0,0
-BLACKHAWK 215/55R18 HISCEND-H HV61 99V XL,215/55R18,6,10
-SAILUN 245/70R17.5LT S637 (REGIONAL ALL-POSITION) 143/141J 18PR,245/70R17.5,3,4
-SAILUN 245/45R17 ATREZZO Z4+AS 99W XL,245/45R17,0,0
-ROVELO 225/55R17 RHP-778 97T,225/55R17,0,0
-DYNAMO 225/55R16 STREET-H MU71 99W XL,225/55R16,10,0
-SAILUN 195/55R16 ATREZZO ELITE 91V XL,195/55R16,9,10
-BLACKHAWK 185/60R13 STREET-H HH01 80T,185/60R13,4,0
-BLACKHAWK 315/80R22.5 BFR65 (REGIONAL STEER) 156/153K 20PR,315/80R22.5,0,0
-SAILUN 295/80R22.5 S917 (OFF ROAD DRIVE) 152/148J 16PR,295/80R22.5,0,0
-SAILUN 275/70R22.5 S690 (COACH ALL-POSITION) 148/145M 18PR,275/70R22.5,0,0
-ROVELO 275/70R22.5 SSR4 (REGIONAL STEER) 148/145M 16PR,275/70R22.5,0,0
-BLACKHAWK 275/70R22.5 BAR26 (REGIONAL ALL-POSITION) 148/145M 16PR,275/70R22.5,1,0
-LONGWAY 155/70R12 ZT101 73S,155/70R12,0,0
-LONGWAY 155R12C ZT901 88/86Q 8PR,155R12C,8,1
-SAILUN 155R12C COMMERCIO VX+ 83/81P 6PR,155R12C,11,1
-COMFORSER 155R13C CF350 90/88S 8PR,155R13C,12,5
-LONGWAY 165/70R13 ZT101 79T,165/70R13,0,0
-AUTOGRIP 165R13C VANMAX 94/93S 8PR,165R13C,0,0
-HEADWAY 165R13C HR601 94/93P 8PR,165R13C,2,1
-SAILUN 165R13C COMMERCIO VX1 94/93S 8PR,165R13C,0,0
-COMFORSER 175/70R13 CF610 82T,175/70R13,8,7
-HEADWAY 175/70R13 HH301 82T,175/70R13,6,9
-LONGWAY 175/70R13 ZT101 82T,175/70R13,0,0
-SAILUN 175/70R13 ATREZZO ECO 82T,175/70R13,9,27
-HORIZON 175/70R13 HH301 82T,175/70R13,0,0
-BLACKHAWK 175/70R13 STREET-H HH01 82T,175/70R13,0,0
-BLACKLION 185/60R13 CILERO BH15 80T,185/60R13,0,0
-FULLRUN 185/70R13 FRUN-ONE 86T,185/70R13,0,0
-COMFORSER 185/70R13 CF510 86H,185/70R13,0,0
-SAILUN 185/70R13 ATREZZO ECO 86T,185/70R13,0,0
-SAILUN 185/70R13 TOURING WR 86T,185/70R13,9,7
-BLACKHAWK 165R14C HISCEND-H HL01 96/95S 8PR,165R14C,0,0
-COMFORSER 165R14C CF350 96/95S 8PR,165R14C,11,23
-AUTOGRIP 175/65R14 GRIP200 82T,175/65R14,0,0
-COMFORSER 175/65R14 CF610 82H,175/65R14,0,0
-FULLRUN 175/65R14 FRUN-ONE 82T,175/65R14,0,0
-HEADWAY 175/65R14 HH301 82H,175/65R14,1,0
-HEADWAY 175/65R14 HH306 82H,175/65R14,0,0
-SAILUN 7.50R16LT S801 (ON/OFF ROAD ALL-POSITION) 122/118L 14PR,7.50R16LT,0,0
-SAILUN 7.50R16LT S812 (ON/OFF ROAD ALL-POSITION) 122/118K 14PR,7.50R16LT,4,5
-TAISHAN 7.50-16 F-2 (TRACTOR) 102 A6 8PR,7.50-16,0,0
-FULLRUN 8.25R16LT TB875 (ALL-POSITION) 128/124M 16PR,8.25R16LT,0,0
-SAILUN 8.25R16LT S812 (ON/OFF ROAD ALL-POSITION) 126/122K 14PR,8.25R16LT,0,0
-SAILUN 8.25R16LT S812 128/124K 16PR,8.25R16LT,0,0
-SAILUN 8.25R16LT S850 (ON/OFF ROAD ALL-POSITION) - TUBELESS 128/124K 16PR,8.25R16LT,3,6
-GENERAL 10.00-16 MULTI R18 8PR,10.00-16,1,0
-HORIZON 205/40R17 HU901 84W XL,205/40R17,0,0
-SAILUN 205/40R17 ATREZZO ZSR 84W XL,205/40R17,3,9
-ROADX 205/45R17 RXMOTION U11 88W XL,205/45R17,0,0
-SAILUN 205/45R17 ATREZZO ZSR2 EV 88W XL,205/45R17,0,0
-HEADWAY 205/50R17 HU901 93W XL,205/50R17,4,4
-SAILUN 185/65R14 ATREZZO ECO 86H,185/65R14,7,1
-SAILUN 185/65R14 ATREZZO TOURING WR 86H,185/65R14WSW,0,0
-AUTOGRIP 185/70R14 GRIP1000 88T,185/70R14,0,0
-COMFORSER 185/70R14 CF510 88H,185/70R14,10,4
-FULLRUN 185/70R14 FRUN-ONE 88H,185/70R14,0,0
-HEADWAY 185/70R14 HH301 88H,185/70R14,0,2
-HEADWAY 185/70R14 HH306 88H,185/70R14,0,0
-LONGWAY 185/70R14 ZT101 88T,185/70R14,0,0
-SAILUN 185/70R14 ATREZZO ECO 88H,185/70R14,6,10
-HEADWAY 185R14C HR601 102/100Q 8PR,185R14C,11,8
-SAILUN 185R14C EXTMILE SL87N 102/100Q 8PR,185R14C,12,17
-SAILUN 185R14C SL12 102/100Q 8PR,185R14C,0,0
-HEADWAY 195/60R14 HH301 86H,195/60R14,0,0
-SAILUN 185/65R15 ATREZZO ELITE 88H,185/65R15,11,24
-SAILUN 185/65R15 ATREZZO TOURING LS 88T,185/65R15,0,0
-BLACKHAWK 185R15C HISCEND-H HL01 103/102R 8PR,185R15C,7,0
-SAILUN 185R15C EXTMILE SL17 103/102R 8PR,185R15C,2,4
-COMFORSER 195/50R15 CF510 82V,195/50R15,7,15
-HEADWAY 195/50R15 HH301 82V,195/50R15,10,0
-ROVELO 195/50R15 ALL WEATHER R4S 82H,195/50R15,0,0
-SAILUN 195/50R15 ELITE 82V,195/50R15,14,8
-SAILUN 195/50R15 ATREZZO R01 SPORT 82V,195/50R15,0,0
-WIDEWAY 195/50R15 SPORTSWAY 82V,195/50R15,0,0
-COMFORSER 195/55R15 CF510 82V,195/55R15,8,2
-HEADWAY 195/55R15 HH301 85V,195/55R15,0,0
-ROVELO 195/55R15 RHP-778 85V,195/55R15,0,0
-ROADX 195/60R14 RXMOTION H11 86H,195/60R14,2,0
-SAILUN 195/60R14 ATREZZO ECO 86H,195/60R14,0,0
-SAILUN 195/65R14 ATREZZO ECO 89H,195/65R14,9,10
-SAILUN 195/65R14 ATREZZO SH402 89H,195/65R14,0,0
-HEADWAY 195/70R14 HH301 91H,195/70R14,9,10
-ROVELO 195/70R14 RHP780 91T,195/70R14,0,0
-SAILUN 195/70R14 ATREZZO ECO 91H,195/70R14,10,10
-SAILUN 195/70R14 ATREZZO SH402 91T,195/70R14,0,0
-DOUBLESTAR 195R14C HR601 106/104Q 8PR,195R14C,0,0
-HEADWAY 195R14C HR601 106/104Q 8PR,195R14C,0,0
-LONGWAY 195R14C ZT501 106/104R 8PR,195R14C,0,1
-SAILUN 195R14C SL12 106/104Q 8PR,195R14C,0,0
-SAILUN 195R14C EXTMILE SL87N 106/104Q 8PR,195R14C,5,6
-DYNAMO 175R14C HISCEND-H MC02 99/98Q 8PR,175R14C,1,0
-SAILUN 175R14C EXTMILE SL17 99/98Q 8PR,175R14C,2,8
-AOTELI 185/60R14 P307 82H,185/60R14,0,0
-COMFORSER 185/60R14 CF510 82H,185/60R14,12,12
-HEADWAY 185/60R14 HH301 82H,185/60R14,11,10
-HORIZON 185/60R14 HH301 82H,185/60R14,0,0
-SAILUN 185/60R14 ATREZZO ECO 82H,185/60R14,6,8
-AUTOGRIP 185/65R14 P308 PLUS 86H,185/65R14,0,0
-COMFORSER 185/65R14 CF510 86H,185/65R14,0,0
-FULLRUN 185/65R14 FRUN-ONE 86H,185/65R14,0,0
-HEADWAY 185/65R14 HH301 86H,185/65R14,13,28
-HORIZON 185/65R14 HH301 86H,185/65R14,0,0
-LONGWAY 185/65R14 ZT101 86T,185/65R14,0,0
-SAILUN 205/60R16 ATREZZO ELITE 92V,205/60R16,8,46
-SAILUN 205/60R16 ATREZZO ELITE 96H XL,205/60R16,0,0
-SAILUN 205/60R16 ATREZZO ELITE 96V XL,205/60R16,0,0
-SAILUN 205/60R16 ATREZZO SH402 96V XL,205/60R16,0,0
-SAILUN 205/65R16 ATREZZO ELITE 95V,205/65R16,9,10
-SAILUN 205/65R16 ATREZZO SH402 95H,205/65R16,0,0
-DYNAMO 205/75R16C HISCEND-H MC02 110/108R 8PR,205/75R16C,0,0
-ROVELO 205/75R16C RCM-836 110/108R 8PR,205/75R16C,0,0
-TRIANGLE 205/75R16C TR552 110/108H 8PR,205/75R16C,0,0
-BLACKHAWK 215/55R16 STREET-H HU02 97W XL,215/55R16,0,0
-SAILUN 215/55R16 ATREZZO ELITE 97W XL,215/55R16,4,0
-SAILUN 215/55R16 ATREZZO ZSR 97W XL,215/55R16,5,10
-COMFORSER 215/60R16 CF510 99V,215/60R16,0,3
-HORIZON 175/65R14 HH301 82H,175/65R14,0,0
-LONGWAY 175/65R14 ZT101 82T,175/65R14,0,0
-SAILUN 175/65R14 ATREZZO ECO 82H,175/65R14,8,20
-TRANSMATE 175/65R14 TS305 82T,175/65R14,0,0
-WIDEWAY 175/65R14 SAFEWAY 82H,175/65R14,0,0
-COMFORSER 175/70R14 CF610 84H,175/70R14,5,4
-FULLRUN 175/70R14 FRUN-ONE 84T,175/70R14,0,0
-HEADWAY 175/70R14 HH301 84H,175/70R14,9,10
-HEADWAY 175/70R14 HH306 84H,175/70R14,0,0
-LONGWAY 175/70R14 ZT101 84T,175/70R14,0,0
-ROADX 175/70R14 RXMOTION T11 84T,175/70R14,0,0
-SAILUN 175/70R14 ATREZZO ECO 84T,175/70R14,0,0
-SAILUN 175/70R14 ATREZZO ECO 88T XL,175/70R14,10,0
-HEADWAY 205/60R14 HH301 88H,205/60R14,7,10
-BLACKHAWK 205/75R14C WSW HISCEND-H HL03 109/107Q 8PR,205/75R14C W,12,0
-SAILUN 205R14C SL12 109/107R 8PR,205R14C,0,0
-AOTELI 185/60R15 ECO809 84H,185/60R15,0,0
-COMFORSER 185/60R15 CF510 84H,185/60R15,18,0
-HEADWAY 185/60R15 HH301 84H,185/60R15,0,11
-SAILUN 185/60R15 ATREZZO ELITE 88H XL,185/60R15,7,8
-AOTELI 185/65R15 ECO809 88H,185/65R15,0,0
-COMFORSER 185/65R15 CF510 88H,185/65R15,25,1
-HEADWAY 185/65R15 HH301 88H,185/65R15,11,1
-SAILUN 195/55R15 ATREZZO ELITE 85V,195/55R15,8,10
-COMFORSER 195/60R15 CF510 88H,195/60R15,3,10
-HEADWAY 195/60R15 HH301 88V,195/60R15,13,10
-ROVELO 195/60R15 RHP780P 88H,195/60R15,6,23
-SAILUN 195/60R15 ATREZZO ELITE 88V,195/60R15,10,6
-COMFORSER 205/60R15 CF510 91V,205/60R15,8,14
-ROVELO 205/60R15 RHP780P 91H,205/60R15,2,10
-SAILUN 205/60R15 ATREZZO ELITE 95H XL,205/60R15,2,0
-COMFORSER 205/65R15 CF510 94H,205/65R15,8,3
-HEADWAY 195/65R15 HH301 91V,195/65R15,2,6
-SAILUN 195/65R15 ATREZZO ELITE 91V,195/65R15,15,12
-COMFORSER 195/70R15C CF350 104/102R 8PR,195/70R15C,5,1
-SAILUN 30x9.50R15LT TERRAMAX M/T 104Q 6PR,30x9.50R15LT,10,14
-SAILUN 31x10.50R15LT TERRAMAX M/T 109Q 6PR,31x10.50R15L,6,0
-ROADCRUZA 31x10.50R15LT RA3200 M/T 109Q 6PR,31x10.50R15L,6,10
-SAILUN 31x10.50R15LT TERRAMAX A/T 109S 6PR,31x10.50R15L,0,14
-SAILUN 195R15C EXTMILE SL87N 106/104R 8PR,195R15C,10,0
-BLACKHAWK 215R15C WSW HISCEND-H HL03 109/107R 8PR,215R15C WSW,3,5
-COMFORSER 225/60R15 CF510 96V,225/60R15,11,6
-SAILUN 205/70R15C EXTMILE SL87N 106/104R 8PR,205/70R15C,6,0
-COMFORSER 215/65R15 CF510 96H,215/65R15,6,10
-ROVELO 215/70R15 RHP-778 98T,215/70R15,2,10
-SAILUN 215/70R15 TURISMO SV57 98H,215/70R15,7,7
-SAILUN 205/50R16 ATREZZO ELITE 87V,205/50R16,18,3
-COMFORSER 205/55R16 CF510 91V,205/55R16,1,0
-HEADWAY 205/55R16 HH301 91V,205/55R16,10,8
-ROVELO 205/55R16 RHP-778 91V,205/55R16,13,10
-SAILUN 205/55R16 ATREZZO ZSR 91W,205/55R16,11,0
-COMFORSER 205/60R16 CF510 92V,205/60R16,9,7
-HEADWAY 205/60R16 HH301 92V,205/60R16,9,1
-SAILUN 215/70R16 TERRAMAX CVR 100H,215/70R16,11,6
-COMFORSER 215/75R16C CF350 116/114S 10PR,215/75R16C,8,0
-ROVELO 215/75R16C RCM-836 113/111R 8PR,215/75R16C,5,5
-HEADWAY 225/50R16 HU901 92W,225/50R16,5,0
-SAILUN 225/50R16 ATREZZO ELITE 96W XL,225/50R16,8,4
-COMFORSER 225/55R16 CF710 99W,225/55R16,6,11
-SAILUN 7.00R15LT EXTMILE SL16 (URBAN ALL-POSITION) - TUBELESS 110/105N 10PR,7.00R15LT,5,6
-COMFORSER 195/50R16 CF710 84V,195/50R16,1,30
-HEADWAY 195/50R16 HU901 88V XL,195/50R16,7,10
-SAILUN 195/50R16 ATREZZO ELITE 84V,195/50R16,11,0
-HEADWAY 195/75R16LT HR601 107/105R 8PR,195/75R16LT,11,8
-SAILUN 235/65R16C COMMERCIO PRO 112/119R 10PR,235/65R16C,14,10
-LINGLONG 235/70R16 CROSSWIND A/T OWL 106T,235/70R16,4,13
-SAILUN 235/70R16 TERRAMAX A/T 106S,235/70R16,12,0
-SAILUN 235/85R16LT TERRAMAX A/T 120/116R 10PR,235/85R16LT,5,10
-SAILUN 235/85R16LT TERRAMAX H/T 120/116R 10PR,235/85R16LT,2,0
-AOTELI 245/70R16 TUFTRAIL A/T 107T,245/70R16,5,0
-COMFORSER 245/70R16 CF1000 A/T 106T,245/70R16,7,1
-COMFORSER 245/70R16 CF1100 AT-M 111T XL,245/70R16,0,9
-SAILUN 265/75R16LT TERRAMAX M/T 123/120Q 10PR,265/75R16LT,1,0
-SAILUN 275/70R16 TERRAMAX A/T 114S,275/70R16,11,0
-ROADCRUZA 285/75R16LT RA8000 R/T 126/123Q 10PR,285/75R16LT,4,0
-SAILUN 285/75R16LT TERRAMAX A/T 126/123R 10PR,285/75R16LT,2,10
-BLACKHAWK 6.50R16LT HISCEND-H HL02 (REGIONAL ALL-POSITION) - TUBELESS 107/102N 10PR,6.50R16LT,6,3
-ROADX 225/55R16 RXMOTION U11 99W XL,225/55R16,2,0
-SAILUN 225/55R16 ATREZZO ELITE 99V XL,225/55R16,7,10
-HEADWAY 225/60R16 HH301 98H,225/60R16,9,0
-SAILUN 225/60R16 ATREZZO SH402 98H,225/60R16,4,10
-HEADWAY 225/70R16 HR805 103H,225/70R16,1,0
-SAILUN 225/70R16 TERRAMAX CVR 103H,225/70R16,8,10
-COMFORSER 235/60R16 CF510 100H,235/60R16,3,5
-SAILUN 245/70R16 TERRAMAX A/T 107S,245/70R16,15,0
-SAILUN 245/70R16 TERRAMAX CVR 111H XL,245/70R16,13,0
-SAILUN 245/75R16 TERRAMAX A/T 111S,245/75R16,6,5
-COMFORSER 245/75R16LT CF3000 M/T 120/116Q 10PR,245/75R16LT,7,10
-ROADCRUZA 245/75R16LT RA1100 AT-M 120/116R 10PR,245/75R16LT,10,0
-ROADCRUZA 245/75R16LT RA3200 M/T 120/116Q 10PR,245/75R16LT,6,10
-SAILUN 255/70R16 TERRAMAX A/T 111T,255/70R16,4,14
-COMFORSER 225/50R17 CF710 98W,225/50R17,9,24
-SAILUN 225/50R17 ATREZZO ZSR 98W XL,225/50R17,1,10
-SAILUN 225/55R17 ATREZZO ZSR 101V XL,225/55R17,4,8
-COMFORSER 225/45R17 CF710 94W XL,225/45R17,6,5
-SAILUN 225/60R17 ATREZZO ELITE 99V,225/60R17,6,20
-HEADWAY 225/65R17 HR805 102H,225/65R17,0,8
-SAILUN 225/65R17 ATREZZO ELITE 102V,225/65R17,24,0
-ROVELO 235/45R17 RPX-988 97W XL,235/45R17,1,0
-SAILUN 235/55R17 ATREZZO ELITE 99V,235/55R17,6,0
-SAILUN 235/60R17 ATREZZO ELITE 102V,235/60R17,10,0
-COMFORSER 235/65R17 CF2000 H/T 108H XL,235/65R17,10,3
-HEADWAY 235/65R17 HR805 108H XL,235/65R17,2,0
-AUTOGRIP 235/70R17 GRIP4000 109H XL,235/70R17,2,0
-COMFORSER 245/40R17 CF700 95W XL,245/40R17,10,9
-SAILUN 245/40R17 ATREZZO ZSR 95W XL,245/40R17,0,2
-SAILUN 245/65R17 TERRAMAX A/T 107S,245/65R17,9,0
-COMFORSER 265/65R17 CF1100 AT-M 112S,265/65R17,8,20
-SAILUN 265/65R17 TERRAMAX A/T 112S,265/65R17,0,21
-SAILUN 265/65R17 TERRAMAX CVR 112T,265/65R17,4,0
-WIDEWAY 265/65R17 POWERWAY A/T 112T,265/65R17,1,0
-COMFORSER 265/70R16 CF1100 AT-M 111T,265/70R16,6,0
-SAILUN 265/70R16 TERRAMAX A/T 112T,265/70R16,11,3
-WIDEWAY 265/70R16 POWERWAY A/T 111T,265/70R16,2,0
-CROSSLEADER 265/70R16LT W01 110/107Q 6PR,265/70R16LT,4,1
-ROADX 265/70R16LT RXQUEST A/T 110/107R 6PR,265/70R16LT,6,6
-SAILUN 265/75R16 TERRAMAX A/T 116S,265/75R16,0,3
-AOTELI 265/75R16LT MUD CONTENDER M/T 123/120Q 10PR,265/75R16LT,2,0
-SAILUN 7.00R16LT EXTMILE SL16 (URBAN ALL-POSITION) - TUBELESS 110/107Q 10PR,7.00R16LT,0,5
-SAILUN 7.00R16LT SAR93 (REGIONAL ALL-POSITION) -  TUBELESS 118/114M 14PR,7.00R16LT,3,0
-BLACKHAWK 7.50R16LT HISCEND-H HL04 (URBAN ALL-POSITION) - TUBELESS 122/118N 14PR,7.50R16LT,6,8
-COMFORSER 265/65R17LT CF9000 R/T 120/117Q 10PR,265/65R17,1,1
-HEADWAY 265/70R17 HR802 H/T 115H,265/70R17,1,0
-COMFORSER 265/70R17LT CF9000 R/T 123/120Q 10PR,265/70R17LT,1,0
-SAILUN 205/75R17.5LT S637+ (REGIONAL ALL-POSITION) 124/122M 14PR,205/75R17.5L,4,0
-BLACKHAWK 215/75R17.5LT BAR26 (REGIONAL ALL-POSITION) 135/133M 16PR,215/75R17.5L,2,0
-SAILUN 215/40R17 ATREZZO ZSR 87W XL,215/40R17,5,8
-COMFORSER 215/45R17 CF710 91W XL,215/45R17,9,0
-HEADWAY 215/45R17 HU901 91W XL,215/45R17,3,0
-BLACKHAWK 255/55R18 SPORT RS1 109V XL,255/55R18,3,0
-ROVELO 255/55R18 MONTARE HT RV08 109V XL,255/55R18,1,8
-ROVELO 255/55R18 ROAD QUEST H/T 109Y XL,255/55R18,7,0
-SAILUN 255/55R18 ATREZZO SPORT R01 109V XL,255/55R18,7,0
-COMFORSER 265/60R18 CF1100 AT-M 114H XL,265/60R18,2,18
-SAILUN 265/60R18 TERRAMAX CVR 110T,265/60R18,4,6
-SAILUN 265/60R18 TERRAMAX A/T 110T,265/60R18,5,9
-ROVELO 265/65R18LT ROAD QUEST RMT810 117/114Q 8PR,265/65R18LT,5,0
-SAILUN 225/80R17.5LT S637+ (REGIONAL ALL-POSITION) 123/122M 18PR,225/80R17.5L,0,5
-SAILUN 235/75R17.5LT S637+ (REGIONAL ALL-POSITION) 143/141L 16PR,235/75R17.5L,0,1
-TRIANGLE 8.5R17.5LT TR656 (ALL-POSITION) 121/120M 12PR,8.5R17.5LT,4,0
-SAILUN 215/40R18 ATREZZO ZSR 89V XL,215/40R18,8,10
-SAILUN 215/55R18 ATREZZO ELITE 99V XL,215/55R18,9,5
-SAILUN 265/65R18 TERRAMAX CVR 112T,265/65R18,2,0
-SAILUN 265/65R18 TERRAMAX A/T 114T,265/65R18,1,15
-SAILUN 265/70R18LT TERRAMAX A/T 124/121R 10PR,265/70R18LT,12,0
-TAISHAN 12.5/80-18 TS78 R4 (JCB FRONT TUBELESS) 12PR,12.5/80-18,0,1
-SAILUN 225/35R19 ATREZZO ZSR 88W XL,225/35R19,3,0
-SAILUN 225/40R19 ATREZZO ZSR SUV 93Y XL,225/40R19,5,0
-SAILUN 225/55R19 ATREZZO ZSR SUV 99V,225/55R19,8,20
-SAILUN 235/45R19 ATREZZO ZSR SUV 99Y XL,235/45R19,1,10
-COMFORSER 215/60R17 CF2000 H/T 96V,215/60R17,4,8
-SAILUN 215/60R17 ATREZZO ELITE 96V,215/60R17,7,5
-HEADWAY 225/45R17 HU901 94W XL,225/45R17,8,12
-SAILUN 225/45R18 ATREZZO ZSR 95W XL,225/45R18,1,0
-SAILUN 225/50R18 ATREZZO ZSR 95W,225/50R18,0,17
-SAILUN 235/60R18 TERRAMAX CVR 103V,235/60R18,7,10
-SAILUN 235/65R18 TERRAMAX CVR 106T,235/65R18,10,10
-SAILUN 245/40R18 ATREZZO ZSR 97W XL,245/40R18,0,1
-HEADWAY 245/45R18 HU901 100W XL,245/45R18,1,10
-SAILUN 245/50R18 TURISMO SU58 104W XL,245/50R18,7,2
-BLACKHAWK 245/60R18 HISCEND-H HT01 105H,245/60R18,8,10
-BLACKHAWK 255/35R18 STREET-H HU02 94Y XL,255/35R18,1,5
-SAILUN 245/45R19 ATREZZO ZSR SUV 102Y XL,245/45R19,6,7
-SAILUN 245/55R19 TERRAMAX CVR 103V,245/55R19,8,0
-SAILUN 255/35R19 ATREZZO ZSR 96Y XL,255/35R19,3,5
-ROVELO 255/50R19 MONTARE HT RV08 103V,255/50R19,6,5
-SAILUN 255/50R19 TERRAMAX CVR 107V XL,255/50R19,1,5
-SAILUN 255/55R19 ATREZZO ZSR SUV 111W XL,255/55R19,1,8
-BLACKHAWK 275/30R19 STREET-H HU02 96Y XL,275/30R19,18,10
-SAILUN 275/35R19 ATREZZO ZSR 96W,275/35R19,1,4
-SAILUN 275/40R19 ATREZZO ZSR 105Y,275/40R19,1,10
-ROADX 245/70R19.5 RH621 (STEER) 136/134M 16PR,245/70R19.5,4,0
-BLACKHAWK 225/35R20 STREET-H HU02 90Y XL,225/35R20,3,0
-SAILUN 225/35R20 ATREZZO ZSR 93W XL,225/35R20,2,0
-COMFORSER 265/50R20 CF1100 AT-M 107T,265/50R20,0,8
-ROVELO 255/35R18 RPX-988 94W XL,255/35R18,6,0
-SAILUN 265/50R20 TERRAMAX A/T 111T XL,265/50R20,9,0
-SAILUN 275/40R20 ATREZZO SVR LX 106W XL,275/40R20,7,0
-SAILUN 275/40R20 ATREZZO ZSR SUV 105Y XL,275/40R20,1,0
-SAILUN 275/45R20 TURISMO SU59 110W XL,275/45R20,4,0
-SAILUN 285/50R20 ATREZZO SVR LX 116V XL,285/50R20,2,5
-HEADWAY 315/35R20 HU901 110W XL,315/35R20,6,5
-SAILUN 8.25R20 S811 (ON/OFF ROAD ALL-POSITION) 139/137K 16PR,8.25R20,3,4
-BLACKHAWK 9.00R20 BAM05 (ON/OFF ROAD ALL-POSITION) 141/139K 14PR,9.00R20,3,5
-ROVELO 9.00R20 RAM1 (MIXED SERVICE ALL-POSITION) 144/142K 16PR,9.00R20,0,4
-TRUEFAST 9.00R20 TA268 (ALL-POSITION) 16PR,9.00R20,5,1
-ZELDA 9.00R20 XR926 (ALL-POSITION) 16PR,9.00R20,1,0
-ROADX 9.00R20 DT992 (ON/OFF ROAD DRIVE) 144/142K 16PR,9.00R20,1,4
-MARLIN 10.00R20 MA801 (ALL-POSITION) 149/146K 18PR,10.00R20,0,4
-SAMSON 10.00R20 GL274A (ALL-POSITION) - TUBELESS 149/146J 18PR,10.00R20,1,0
-TRIANGLE 10.00R20 TR668 (ALL-POSITION) - TUBELESS 149/146K 18PR,10.00R20,2,0
-ROVELO 11.00R20 SAM2 (MIXED SERVICE ALL-POSITION) - TUBELESS 18PR,11.00R20,3,0
-ROVELO 11.00R20 RSR62 (REGIONAL STEER) 152/149L 18PR,11.00R20,0,1
-TRUEFAST 11.00R20 TA268 (ALL-POSITION) 18PR,11.00R20,1,0
-TAISHAN 12.00-20 HI-WAY 2000 TS37 - TUBELESS 154/150G 18PR,12.00-20,1,0
-BLACKHAWK 14.00R20 BDM91 (ON/OFF ROAD DRIVE) - TUBELESS 164B 3*,14.00R20,0,2
-SAILUN 14.00R20 S910 (ON/OFF-ROAD DRIVE) 164/161G 20PR,14.00R20,1,0
-ROVELO 11R22.5 SSR1 (REGIONAL STEER) 148/145M 16PR,11R22.5,0,2
-SAILUN 11R22.5 S629 (REGIONAL STEER) 149/146M 18PR,11R22.5,3,0
-TRUEFAST 11R22.5 TF128 (STEER) 16PR,11R22.5,1,0
-SAILUN 11R22.5 S828 (ON/OFF ROAD ALL POSITION) 148/145K 16PR,11R22.5,3,0
-TRUEFAST 11R22.5 TA268 (ALL-POSITION) 16PR,11R22.5,1,0
-BLACKHAWK 11R22.5 BDM77 (DRIVE ON/OFF ROAD) 149/146K 18PR,11R22.5,1,0
-SAILUN 12R22.5 S606 (REGIONAL STEER) 152/148M 16PR,12R22.5,1,0
-SAILUN 12R22.5 S661 (REGIONAL STEER) 152/149L 18PR,12R22.5,1,0
-SAILUN 12R22.5 S629 (REGIONAL STEER) 152/149M 18PR,12R22.5,1,0
-SAILUN 12R22.5 S737A (REGIONAL DRIVE) 152/148M 16PR,12R22.5,1,0
-SAILUN 12R22.5 S917 (OFF ROAD DRIVE) 16PR,12R22.5,2,0
-SAILUN 275/70R22.5 S637 (REGIONAL ALL-POSITION) 148/145M 16PR,275/70R22.5,1,0
-TRUEFAST 295/80R22.5 TF128 (STEER) 152/149M 18PR,295/80R22.5,0,5
-SAILUN 315/70R22.5 S629 (REGIONAL STEER) 156/150L 18PR,315/70R22.5,1,0
-COMFORSER 165R13C CF350 94/93S 8PR,165R13C,0,1
-SAILUN 12R22.5 S813A (ON/OFF ROAD ALL-POSTION) 152/149K 18PR,12R22.5,2,0
-SAILUN 11R22.5 SDU61 (URBAN DRIVE) 149/146J 18PR,11R22.5,0,2
-ROVELO 11R22.5 RDR37A (REGIONAL DRIVE) 148/145M 16PR,11R22.5,0,5
-SAILUN 11R22.5 S815 (ON/OFF ROAD ALL-POSITION) 148/145L 16PR,11R22.5,0,2
-BLACKHAWK 11R22.5 BAM01 (ON/OFF ROAD ALL-POSITION) 149/146M 18PR,11R22.5,1,3
-SAILUN 275/40R22 ATREZZO ZSR SUV 108Y XL,275/40R22,6,0
-DYNAMO 275/40R21 HISCEND-H MSU01 107Y XL,275/40R21,2,0
-SAILUN 11.00R20 S702 (REGIONAL DRIVE) - TUBELESS 152/149K 18PR,11.00R20,0,2
-SAILUN 11.00R20 S820E (REGIONAL ALL-POSITION) - TUBELESS 152/149K 18PR,11.00R20,0,5
-BLACKHAWK 275/45R19 STREET-H HU02 108Y XL,275/45R19,9,0
-SAILUN 275/30R19 ATREZZO ZSR 96W XL,275/30R19,0,12
-ROADX 265/35R19 RXMOTION U11 98Y XL,265/35R19,6,0
-DYNAMO 265/30R19 STREET-H MU02 93Y XL,265/30R19,7,0
-SAILUN 255/45R19 TURISMO SU59 104W XL,255/45R19,3,0
-SAILUN 235/50R19 TERRAMAX CVR 99W,235/50R19,2,10
-SAILUN 235/40R19 ATREZZO ZSR2 96Y XL,235/40R19,7,0
-DYNAMO 255/35R18 STREET-H MU02 94Y XL,255/35R18,1,8
-COMFORSER 225/40R18 CF710 92W XL,225/40R18,25,14
-ROVELO 215/55R18 MONTARE HT RV08 95V,215/55R18,4,0
-SAILUN 35x12.50R17LT TERRAMAX M/T 121Q 10PR,35x12.50R17L,4,4
-DYNAMO 265/70R17 HISCEND-H MAT01 115T,265/70R17,1,0
-COMFORSER 255/65R17 CF1100 AT-M 114H,255/65R17,1,0
-SAILUN 235/45R17 ATREZZO ZSR2 97Y XL,235/45R17,7,0
-SAILUN 215/55R17 TURISMO SU58 98W XL,215/55R17,10,3
-SAILUN 205/45R17 ATREZZO ZSR 88W XL,205/45R17,15,5
-BLACKHAWK 8.25R16LT BAM05 (ON/OFF ROAD ALL-POSITION) 128/124L 16PR,8.25R16LT,1,8
-TAISHAN 7.50-16 TS37 HI-WAY 2000 120/116J 12PR,7.50-16,5,0
-FIREMAX 7.50R16LT FM18 16PR,7.50R16LT,12,0
-BLACKHAWK 7.50R16LT BAM05 (ON/OFF ROAD ALL-POSITION)- TUBELESS 125/121L 16PR,7.50R16LT,9,0
-COMFORSER 255/70R16 CF1100 111T,255/70R16,5,5
-BLACKHAWK 225/70R16 HISCEND-H HT01 103S,225/70R16,5,0
-DYNAMO 235/75R15LT HISCEND-H MAT01 104/101S 6PR,235/75R15LT,1,0
-COMFORSER 235/60R15 CF510 98H,235/60R15,14,20
-SAILUN 175/65R15 ATREZZO ECO 88T XL,175/65R15,14,0
-DYNAMO 205R14C HISCEND-H MC02 109/107R 8PR,205R14C,8,0
-SAILUN 165R14C EXTMILE SL87N 96/95S 8PR,165R14C,9,10
-SAILUN 185/60R13 WSW ATREZZO TOURING WR 80T,185/60R13,6,10
-DYNAMO 185/60R13 STREET-H MH01 80T,185/60R13,6,10
-BLACKHAWK 315/80R22.5 BAM86 (ON/OFF ROAD ALL-POSITION) 156/153K 20PR,315/80R22.5,1,0
-GOODHAO 315/80R22.5 H117 (STEER) 157/154L 20PR,315/80R22.5,0,1
-NORMAKS 315/80R22.5 NU525 (STEER) 156/150M 20PR,315/80R22.5,2,0
-ROVELO 315/80R22.5 SSR2 (REGIONAL STEER) 157/154K 20PR,315/80R22.5,1,0
-SAILUN 315/80R22.5 S606 (REGIONAL STEER) 157/154K 20PR,315/80R22.5,1,0
-SAILUN 315/80R22.5 S607 (REGIONAL STEER) 151/157G (157/154K) 20PR,315/80R22.5,4,0
-STALLION 315/80R22.5 CARRIER-115 (STEER) 20PR,315/80R22.5,4,3
-TRUEFAST 315/80R22.5 TF128 (STEER) 156/150M 20PR,315/80R22.5,2,0
-GOODHAO 315/80R22.5 H115 (ALL-POSITION) 157/154L 20PR,315/80R22.5,1,0
-SAILUN 315/80R22.5 S815 (ON/OFF ROAD ALL-POSITION) 161/157G (157/154K) 20PR,315/80R22.5,4,0
-BLACKHAWK 315/80R22.5 BDR78 (REGIONAL DRIVE) 156/153K 20PR,315/80R22.5,7,0
-BOSSWAY 315/80R22.5 BD655 (DRIVE) 156/150L 20PR,315/80R22.5,1,0
-NORMAKS 315/80R22.5 ND638 (DRIVE) 20PR,315/80R22.5,1,0
-SAILUN 315/80R22.5 SDR72 (REGIONAL DRIVE) 156/153K 20PR,315/80R22.5,5,0
-SAILUN 315/80R22.5 S913A (ON/OFF ROAD DRIVE) 156/153J 20PR,315/80R22.5,1,2
-STALLION 315/80R22.5 TOUGH-768 20PR,315/80R22.5,2,2
-SAILUN 385/65R22.5 S696 (REGIONAL STEER) 160K (158L) 20PR,385/65R22.5,6,0
-TRUEFAST 385/65R22.5 TF158 (STEER) 20PR,385/65R22.5,0,1
-BLACKHAWK 385/65R22.5 BAM99 (ON/OFF ROAD ALL-POSITION) 158K 18PR,385/65R22.5,1,0
-DOUBLESTAR 385/65R22.5 DSR678 (LONGHAUL TRAILER) 160K 20PR,385/65R22.5,0,36
-NORMAKS 385/65R22.5 TT608 (TRAILER) 160K 20PR,385/65R22.5,1,0
-STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
-
-  // Parse CSV - keep ALL items including zero stock for admin updates
-  let masterInventory = parseCSVToInventory(CSV_DATA);
-  
-  // Also add a few core tyres to ensure variety
-  const coreTyres = [
-    { brand: "Sailun", model: "Atrezzo Elite 205/55R16", size: "205/55R16", vehicle: "Car", qty1: 8, qty4: 4 },
-    { brand: "Blackhawk", model: "Hiscend-H HV61 235/55R18", size: "235/55R18", vehicle: "SUV", qty1: 1, qty4: 0 },
-    { brand: "Comforser", model: "CF610 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 8, qty4: 7 },
-    { brand: "Headway", model: "Road Champ 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 20, qty4: 0 },
-    { brand: "Rovello", model: "R-Terrain 255/70R18", size: "255/70R18", vehicle: "SUV", qty1: 5, qty4: 0 }
-  ];
-  
-  for (const tyre of coreTyres) {
-    const exists = masterInventory.some(t => t.brand === tyre.brand && t.size === tyre.size);
-    if (!exists) {
-      masterInventory.push(tyre);
-    }
-  }
-  
-  // Current working inventory (start with master)
-  let currentInventory = JSON.parse(JSON.stringify(masterInventory));
-  
-  function getTotalQty(tyre) { return (tyre.qty1 || 0) + (tyre.qty4 || 0); }
-  
   function filterTyres(tyres, searchText, vehicleCat, stockMode) {
     return tyres.filter(t => {
       const total = getTotalQty(t);
-      // Hide out-of-stock items from view
       if (total === 0) return false;
       if (stockMode === 'low-stock' && total > 5) return false;
       const vehicleMatch = (vehicleCat === 'all') || (t.vehicle === vehicleCat);
@@ -952,20 +394,23 @@ STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
       return vehicleMatch && searchMatch;
     });
   }
-  
+
   function renderInventory() {
     const searchInput = document.getElementById('globalSearch')?.value || '';
     const stockSelect = document.getElementById('stockStatusFilter')?.value || 'in-stock-only';
     const activeVehicleBtn = document.querySelector('.cat-btn.active-cat');
     let vehicleFilter = 'all';
     if (activeVehicleBtn) vehicleFilter = activeVehicleBtn.getAttribute('data-vehicle') || 'all';
+    
     const filtered = filterTyres(currentInventory, searchInput, vehicleFilter, stockSelect);
     const grid = document.getElementById('stockGridContainer');
     if (!grid) return;
+    
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or category — out-of-stock items are hidden.</p></div>`;
       return;
     }
+    
     grid.innerHTML = '';
     filtered.forEach(tyre => {
       const total = getTotalQty(tyre);
@@ -995,9 +440,17 @@ STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
       grid.appendChild(card);
     });
   }
-  
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
-  
+
+  function escapeHtml(str) { 
+    if(!str) return ''; 
+    return str.replace(/[&<>]/g, function(m){ 
+      if(m === '&') return '&amp;'; 
+      if(m === '<') return '&lt;'; 
+      if(m === '>') return '&gt;'; 
+      return m;
+    }); 
+  }
+
   function bindEvents() {
     const searchEl = document.getElementById('globalSearch');
     const stockFilter = document.getElementById('stockStatusFilter');
@@ -1012,84 +465,44 @@ STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
       });
     });
   }
-  
-  // Function to update inventory from admin (CSV upload)
-  window.updateTyreInventory = function(newInventory) {
-    if (newInventory && Array.isArray(newInventory)) {
-      currentInventory = JSON.parse(JSON.stringify(newInventory));
-      renderInventory();
-    }
-  };
-  
-  // Function to reset stock to master (preserves zero-qty items for CSV updates)
-  window.resetStockToMaster = function() {
-    currentInventory = JSON.parse(JSON.stringify(masterInventory));
-    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
-    renderInventory();
-  };
-  
-  // Load from localStorage if available (for persistence after admin updates)
-  const stored = localStorage.getItem('headway_tyre_inventory');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        currentInventory = parsed;
-      }
-    } catch(e) {}
-  }
-  
-  // Save current inventory to localStorage when page unloads
-  window.addEventListener('beforeunload', () => {
-    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
-  });
-  
-  // Also listen for storage events from admin page
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'headway_tyre_inventory' && e.newValue) {
-      try {
-        const updated = JSON.parse(e.newValue);
-        if (Array.isArray(updated)) {
-          currentInventory = updated;
-          renderInventory();
-        }
-      } catch(e) {}
-    }
-  });
-  
-  document.addEventListener('DOMContentLoaded', () => {
-    bindEvents();
-    renderInventory();
-  });
-  // Force refresh from localStorage on page focus
-  window.addEventListener('focus', function() {
+
+  // Function to load inventory from localStorage
+  function loadInventoryFromStorage() {
     const stored = localStorage.getItem('headway_tyre_inventory');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
           currentInventory = parsed;
+          console.log('Loaded from localStorage:', currentInventory.length, 'items');
           renderInventory();
+          return true;
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error('Error parsing localStorage:', e);
+      }
     }
-  });
-  
-  // Also listen for storage events from admin page
-  window.addEventListener('storage', function(e) {
-    if (e.key === 'headway_tyre_inventory' && e.newValue) {
-      try {
-        const updated = JSON.parse(e.newValue);
-        if (Array.isArray(updated)) {
-          currentInventory = updated;
-          renderInventory();
-          // Show a small notification that stock was updated
-          showUpdateNotification();
-        }
-      } catch(e) {}
+    console.log('No valid inventory in localStorage');
+    return false;
+  }
+
+  // Function to update inventory from admin
+  window.updateTyreInventory = function(newInventory) {
+    if (newInventory && Array.isArray(newInventory)) {
+      currentInventory = newInventory;
+      localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
+      renderInventory();
+      showUpdateNotification();
     }
-  });
-  
+  };
+
+  // Reset stock function (called by admin)
+  window.resetStockToMaster = function() {
+    // This will be called by admin, but we need master data
+    // Admin will handle the reset and broadcast
+    loadInventoryFromStorage();
+  };
+
   function showUpdateNotification() {
     let notification = document.getElementById('stock-update-notification');
     if (!notification) {
@@ -1104,6 +517,39 @@ STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
       notification.style.display = 'none';
     }, 3000);
   }
+
+  // Listen for storage events from admin page
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'headway_tyre_inventory' && e.newValue) {
+      try {
+        const updated = JSON.parse(e.newValue);
+        if (Array.isArray(updated) && updated.length > 0) {
+          currentInventory = updated;
+          renderInventory();
+          showUpdateNotification();
+        }
+      } catch(e) {}
+    }
+  });
+
+  // Refresh when page gets focus
+  window.addEventListener('focus', function() {
+    loadInventoryFromStorage();
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    bindEvents();
+    
+    // Try to load from localStorage first
+    if (!loadInventoryFromStorage()) {
+      // If no inventory in localStorage, show message
+      const grid = document.getElementById('stockGridContainer');
+      if (grid) {
+        grid.innerHTML = `<div class="empty-state"><h3>📦 No Stock Data</h3><p>Please upload a CSV file via the Admin panel to populate stock.</p><p><a href="admin.html" style="color:#f97316;">Go to Admin →</a></p></div>`;
+      }
+    }
+  });
 </script>
 </body>
 </html>
