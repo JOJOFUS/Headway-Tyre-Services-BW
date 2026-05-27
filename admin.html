@@ -142,48 +142,62 @@
       margin: 2px 0;
     }
 
-    .stock-preview {
-      margin-top: 30px;
-      max-height: 500px;
-      overflow-y: auto;
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
-    .stock-item {
-      background: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 10px;
+    .button-group button {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .reset-btn {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+
+    .reset-btn:hover {
+      background: linear-gradient(135deg, #c0392b, #a93226);
+      box-shadow: 0 5px 15px rgba(231,76,60,0.3);
+    }
+
+    .reset-confirm {
+      background: #fee;
+      border: 1px solid #e74c3c;
       border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .reset-confirm.show {
+      display: block;
+    }
+
+    .reset-confirm p {
+      margin-bottom: 15px;
+      color: #c0392b;
+      font-weight: 600;
+    }
+
+    .reset-confirm-buttons {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
       gap: 10px;
     }
 
-    .stock-info {
-      flex: 1;
+    .reset-confirm-buttons button {
+      padding: 8px 20px;
+      width: auto;
     }
 
-    .stock-info strong {
-      color: #ff6a00;
+    .confirm-yes {
+      background: #e74c3c;
     }
 
-    .stock-quantity {
-      display: flex;
-      gap: 15px;
-      font-weight: bold;
-    }
-
-    .qty1-badge {
-      color: #4caf50;
-    }
-
-    .qty4-badge {
-      color: #2196f3;
-    }
-
-    .total-badge {
-      color: #ff9500;
+    .confirm-no {
+      background: #95a5a6;
     }
 
     .logout-btn {
@@ -236,13 +250,8 @@
         padding: 25px;
       }
       
-      .stock-item {
+      .button-group {
         flex-direction: column;
-        text-align: center;
-      }
-      
-      .stock-quantity {
-        justify-content: center;
       }
     }
   </style>
@@ -278,6 +287,18 @@
   
   <div id="adminMessage"></div>
   
+  <div class="button-group">
+    <button onclick="showResetConfirm()" class="reset-btn">🔄 Reset Stock to Master</button>
+  </div>
+  
+  <div id="resetConfirm" class="reset-confirm">
+    <p>⚠️ WARNING: This will reset ALL stock quantities to the original master values. Any changes made via CSV will be lost. Are you sure?</p>
+    <div class="reset-confirm-buttons">
+      <button onclick="confirmReset()" class="confirm-yes">Yes, Reset Stock</button>
+      <button onclick="hideResetConfirm()" class="confirm-no">Cancel</button>
+    </div>
+  </div>
+  
   <div class="csv-upload-area" onclick="document.getElementById('csvFile').click()">
     <p>📁 Click to upload CSV file</p>
     <p style="font-size: 0.8rem; margin-top: 10px;">or drag and drop</p>
@@ -291,17 +312,16 @@
     <strong>Example row:</strong><br>
     <code>Sailun,Atrezzo Elite 205/55R16,205/55R16,8,4</code><br><br>
     <strong>📌 Important:</strong><br>
-    • Only <strong>ITEM DESCRIPTION (model)</strong>, <strong>SIZE</strong>, <strong>QTY1</strong>, and <strong>QTY4</strong> will be updated<br>
+    • CSV will UPDATE existing tyres based on <strong>brand + size</strong> matching<br>
+    • Updates <strong>model/description</strong>, <strong>size</strong>, <strong>qty1</strong>, and <strong>qty4</strong><br>
     • Vehicle type will remain unchanged<br>
-    • The CSV will UPDATE existing tyres based on brand matching
+    • Use the Reset button before upload to start fresh<br>
+    • <strong>Zero quantities (0) will be saved</strong> - items with zero total won't show on stock page
   </div>
   
   <button onclick="downloadSampleCSV()" style="background: #2196F3; margin-bottom: 20px;">📥 Download Sample CSV Template</button>
   
   <div id="statsContainer" class="stats-box"></div>
-  
-  <h3>Current Stock Preview</h3>
-  <div id="stockPreview" class="stock-preview"></div>
   
   <button onclick="logout()" class="logout-btn">🚪 Logout</button>
   <div class="back-link">
@@ -310,17 +330,76 @@
 </div>
 
 <script>
-  // User accounts
-  const users = {
-    'Jojo': 'jojo123',
-    'Arris': 'arris456',
-    'Mr Hou': 'mrhou789'
-  };
-  
+  // ============================================================
+  // MASTER INVENTORY (original baseline with all products)
+  // ============================================================
+  const MASTER_INVENTORY = [
+    { brand: "Sailun", model: "Atrezzo Elite 205/55R16", size: "205/55R16", vehicle: "Car", qty1: 8, qty4: 4 },
+    { brand: "Sailun", model: "Terramax S/T 265/70R16", size: "265/70R16", vehicle: "SUV", qty1: 11, qty4: 3 },
+    { brand: "Sailun", model: "Atrezzo ZSR 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 1, qty4: 17 },
+    { brand: "Sailun", model: "Atrezzo ZSR 235/55R18", size: "235/55R18", vehicle: "SUV", qty1: 12, qty4: 1 },
+    { brand: "Sailun", model: "Atrezzo Elite 195/55R16", size: "195/55R16", vehicle: "Car", qty1: 9, qty4: 10 },
+    { brand: "Sailun", model: "Atrezzo Elite 205/60R16", size: "205/60R16", vehicle: "Car", qty1: 8, qty4: 46 },
+    { brand: "Sailun", model: "Terramax A/T 245/70R16", size: "245/70R16", vehicle: "SUV", qty1: 15, qty4: 0 },
+    { brand: "Sailun", model: "Atrezzo ZSR 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 7, qty4: 3 },
+    { brand: "Sailun", model: "Atrezzo ZSR SUV 235/45R19", size: "235/45R19", vehicle: "SUV", qty1: 1, qty4: 10 },
+    { brand: "Sailun", model: "Atrezzo ZSR SUV 245/45R19", size: "245/45R19", vehicle: "SUV", qty1: 6, qty4: 7 },
+    { brand: "Sailun", model: "Terramax A/T 265/50R20", size: "265/50R20", vehicle: "SUV", qty1: 9, qty4: 0 },
+    { brand: "Sailun", model: "S629 11R22.5", size: "11R22.5", vehicle: "Truck", qty1: 3, qty4: 0 },
+    { brand: "Sailun", model: "S607 315/80R22.5", size: "315/80R22.5", vehicle: "Truck", qty1: 4, qty4: 0 },
+    { brand: "Blackhawk", model: "Hiscend-H HV61 235/55R18", size: "235/55R18", vehicle: "SUV", qty1: 1, qty4: 0 },
+    { brand: "Blackhawk", model: "Hiscend-H HV61 215/55R18", size: "215/55R18", vehicle: "Car", qty1: 6, qty4: 10 },
+    { brand: "Blackhawk", model: "Street-H HH01 185/60R13", size: "185/60R13", vehicle: "Car", qty1: 4, qty4: 0 },
+    { brand: "Blackhawk", model: "Hiscend-H HT01 245/60R18", size: "245/60R18", vehicle: "SUV", qty1: 8, qty4: 10 },
+    { brand: "Blackhawk", model: "Street-H HU02 275/30R19", size: "275/30R19", vehicle: "Car", qty1: 18, qty4: 10 },
+    { brand: "Blackhawk", model: "BAM05 9.00R20", size: "9.00R20", vehicle: "Truck", qty1: 3, qty4: 5 },
+    { brand: "Blackhawk", model: "BDR78 315/80R22.5", size: "315/80R22.5", vehicle: "Truck", qty1: 7, qty4: 0 },
+    { brand: "Blackhawk", model: "BDR75 12R22.5", size: "12R22.5", vehicle: "Truck", qty1: 0, qty4: 1 },
+    { brand: "Comforser", model: "CF610 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 8, qty4: 7 },
+    { brand: "Comforser", model: "CF350 165R14C", size: "165R14C", vehicle: "Truck", qty1: 11, qty4: 23 },
+    { brand: "Comforser", model: "CF510 195/50R15", size: "195/50R15", vehicle: "Car", qty1: 7, qty4: 15 },
+    { brand: "Comforser", model: "CF1000 A/T 245/70R16", size: "245/70R16", vehicle: "SUV", qty1: 7, qty4: 1 },
+    { brand: "Comforser", model: "CF710 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 6, qty4: 5 },
+    { brand: "Comforser", model: "CF2000 H/T 235/65R17", size: "235/65R17", vehicle: "SUV", qty1: 10, qty4: 3 },
+    { brand: "Comforser", model: "CF1100 AT-M 265/65R17", size: "265/65R17", vehicle: "SUV", qty1: 8, qty4: 20 },
+    { brand: "Comforser", model: "CF710 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 25, qty4: 14 },
+    { brand: "Comforser", model: "CF1100 265/60R18", size: "265/60R18", vehicle: "SUV", qty1: 2, qty4: 18 },
+    { brand: "Comforser", model: "CF1000 30x9.50R15LT", size: "30x9.50R15LT", vehicle: "SUV", qty1: 6, qty4: 10 },
+    { brand: "Headway", model: "HR601 165R13C", size: "165R13C", vehicle: "Truck", qty1: 2, qty4: 1 },
+    { brand: "Headway", model: "HH301 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 6, qty4: 9 },
+    { brand: "Headway", model: "HR601 185R14C", size: "185R14C", vehicle: "Truck", qty1: 11, qty4: 8 },
+    { brand: "Headway", model: "HH301 195/50R15", size: "195/50R15", vehicle: "Car", qty1: 10, qty4: 0 },
+    { brand: "Headway", model: "HH301 205/55R16", size: "205/55R16", vehicle: "Car", qty1: 10, qty4: 8 },
+    { brand: "Headway", model: "HU901 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 8, qty4: 12 },
+    { brand: "Headway", model: "Road Champ 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 20, qty4: 0 },
+    { brand: "Rovello", model: "R-Terrain 255/70R18", size: "255/70R18", vehicle: "SUV", qty1: 5, qty4: 0 },
+    { brand: "Rovello", model: "RPX-988 235/55R17", size: "235/55R17", vehicle: "Car", qty1: 6, qty4: 0 },
+    { brand: "Dynamo", model: "Street-H MU71 225/55R16", size: "225/55R16", vehicle: "Car", qty1: 10, qty4: 0 },
+    { brand: "Dynamo", model: "Highway Star 215/55R17", size: "215/55R17", vehicle: "Car", qty1: 7, qty4: 0 },
+    { brand: "Dynamo", model: "Street-H MU71 245/40R17", size: "245/40R17", vehicle: "Car", qty1: 7, qty4: 0 },
+    { brand: "Dynamo", model: "Street-H MU71 245/45R18", size: "245/45R18", vehicle: "Car", qty1: 4, qty4: 0 },
+    { brand: "Roadcruza", model: "Rugged MT 35x12.5R20", size: "35x12.5R20", vehicle: "SUV", qty1: 3, qty4: 0 },
+    { brand: "Roadcruza", model: "RA1100 AT-M 245/75R16LT", size: "245/75R16LT", vehicle: "SUV", qty1: 10, qty4: 0 },
+    { brand: "Roadcruza", model: "RA3200 M/T 31x10.50R15LT", size: "31x10.50R15LT", vehicle: "SUV", qty1: 6, qty4: 10 },
+    { brand: "Truefast", model: "TF-Speed 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 4, qty4: 2 },
+    { brand: "Truefast", model: "TA268 9.00R20", size: "9.00R20", vehicle: "Truck", qty1: 5, qty4: 0 },
+    { brand: "Truefast", model: "TF128 11R22.5", size: "11R22.5", vehicle: "Truck", qty1: 1, qty4: 0 },
+    { brand: "Comforser", model: "Agri-Trac R-1 11.2R24", size: "11.2R24", vehicle: "Agricultural", qty1: 4, qty4: 2 },
+    { brand: "Sailun", model: "Farm Radial 420/85R28", size: "420/85R28", vehicle: "Agricultural", qty1: 3, qty4: 1 },
+    { brand: "Headway", model: "Industrial Solid 7.00-12", size: "7.00-12", vehicle: "Machine", qty1: 6, qty4: 0 },
+    { brand: "Blackhawk", model: "Loader L5 17.5-25", size: "17.5-25", vehicle: "Machine", qty1: 2, qty4: 2 },
+    { brand: "Rovello", model: "Agri-Trac 14.9R28", size: "14.9R28", vehicle: "Agricultural", qty1: 5, qty4: 3 }
+  ];
+
   let currentUser = '';
   let currentInventory = [];
 
   function checkPassword() {
+    const users = {
+      'Jojo': 'jojo123',
+      'Arris': 'arris456',
+      'Mr Hou': 'mrhou789'
+    };
     const usernameInput = document.getElementById('adminUsername');
     const passwordInput = document.getElementById('adminPassword');
     const loginError = document.getElementById('loginError');
@@ -343,12 +422,64 @@
   function loadCurrentInventory() {
     const stored = localStorage.getItem('headway_tyre_inventory');
     if (stored) {
-      currentInventory = JSON.parse(stored);
+      try {
+        currentInventory = JSON.parse(stored);
+      } catch(e) {
+        currentInventory = JSON.parse(JSON.stringify(MASTER_INVENTORY));
+      }
     } else {
-      currentInventory = [];
+      currentInventory = JSON.parse(JSON.stringify(MASTER_INVENTORY));
     }
-    updateStockPreview();
     updateStats();
+  }
+  
+  function showResetConfirm() {
+    const confirmDiv = document.getElementById('resetConfirm');
+    confirmDiv.classList.add('show');
+  }
+  
+  function hideResetConfirm() {
+    const confirmDiv = document.getElementById('resetConfirm');
+    confirmDiv.classList.remove('show');
+  }
+  
+  function confirmReset() {
+    currentInventory = JSON.parse(JSON.stringify(MASTER_INVENTORY));
+    saveAndBroadcast();
+    updateStats();
+    showMessage('✅ Stock has been reset to master values!', 'success');
+    hideResetConfirm();
+  }
+  
+  function saveAndBroadcast() {
+    // Save to localStorage
+    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
+    
+    // Force a storage event to notify other tabs
+    const event = new StorageEvent('storage', {
+      key: 'headway_tyre_inventory',
+      newValue: JSON.stringify(currentInventory),
+      oldValue: null,
+      storageArea: localStorage
+    });
+    window.dispatchEvent(event);
+    
+    // Also notify stock page if it's the same window (opener)
+    if (window.opener && !window.opener.closed) {
+      if (window.opener.updateTyreInventory) {
+        window.opener.updateTyreInventory(currentInventory);
+      }
+      // Also try to trigger a refresh on the stock page
+      try {
+        window.opener.location.reload();
+      } catch(e) {}
+    }
+    
+    // Create a timestamp to trigger storage events in other tabs
+    localStorage.setItem('headway_tyre_update', Date.now().toString());
+    setTimeout(() => {
+      localStorage.removeItem('headway_tyre_update');
+    }, 100);
   }
   
   function updateStats() {
@@ -386,43 +517,6 @@
     `;
   }
   
-  function updateStockPreview() {
-    const previewDiv = document.getElementById('stockPreview');
-    if (!previewDiv) return;
-    
-    if (currentInventory.length === 0) {
-      previewDiv.innerHTML = '<p style="text-align: center; color: #999;">No tyres in inventory. Upload CSV to add tyres.</p>';
-      return;
-    }
-    
-    previewDiv.innerHTML = '';
-    currentInventory.slice(0, 20).forEach(tyre => {
-      const total = (tyre.qty1 || 0) + (tyre.qty4 || 0);
-      const item = document.createElement('div');
-      item.className = 'stock-item';
-      item.innerHTML = `
-        <div class="stock-info">
-          <strong>${tyre.brand}</strong><br>
-          <small>${tyre.model}</small><br>
-          <small style="color:#888;">${tyre.size} | ${tyre.vehicle}</small>
-        </div>
-        <div class="stock-quantity">
-          <span class="qty1-badge">📦 Qty1: ${tyre.qty1 || 0}</span>
-          <span class="qty4-badge">🏪 Qty4: ${tyre.qty4 || 0}</span>
-          <span class="total-badge">📊 Total: ${total}</span>
-        </div>
-      `;
-      previewDiv.appendChild(item);
-    });
-    
-    if (currentInventory.length > 20) {
-      const more = document.createElement('div');
-      more.className = 'stock-item';
-      more.innerHTML = `<div style="text-align: center; width: 100%;">... and ${currentInventory.length - 20} more items</div>`;
-      previewDiv.appendChild(more);
-    }
-  }
-  
   function handleCSVUpload(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -440,12 +534,13 @@
     }
     
     const firstLine = lines[0].toLowerCase();
-    const hasHeaders = firstLine.includes('brand');
+    const hasHeaders = firstLine.includes('brand') || firstLine.includes('description');
     let startRow = hasHeaders ? 1 : 0;
     
     let updatedCount = 0;
+    let addedCount = 0;
     let errorCount = 0;
-    const newInventory = [...currentInventory];
+    const newInventory = JSON.parse(JSON.stringify(currentInventory));
     
     for (let i = startRow; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -457,7 +552,6 @@
         continue;
       }
       
-      // Columns: brand, description/model, size, qty1, qty4 (optional)
       const brand = columns[0].trim();
       const model = columns[1].trim();
       const size = columns[2].trim();
@@ -469,9 +563,15 @@
         continue;
       }
       
-      // Find existing tyre by brand only (preserve vehicle type)
+      if (!brand || !size) {
+        errorCount++;
+        continue;
+      }
+      
+      // Find existing tyre by brand AND size
       const existingIndex = newInventory.findIndex(t => 
-        t.brand.toLowerCase() === brand.toLowerCase()
+        t.brand.toLowerCase() === brand.toLowerCase() && 
+        t.size.toLowerCase() === size.toLowerCase()
       );
       
       if (existingIndex >= 0) {
@@ -480,20 +580,30 @@
         newInventory[existingIndex].qty1 = qty1;
         newInventory[existingIndex].qty4 = qty4;
         updatedCount++;
+      } else {
+        let vehicle = "Car";
+        const sizeUpper = size.toUpperCase();
+        if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5')) vehicle = "Truck";
+        else if (sizeUpper.includes('LT') || (parseInt(sizeUpper) >= 235 && sizeUpper.includes('R'))) vehicle = "SUV";
+        else if (sizeUpper.includes('R24') || sizeUpper.includes('R28')) vehicle = "Agricultural";
+        
+        newInventory.push({
+          brand: brand,
+          model: model,
+          size: size,
+          vehicle: vehicle,
+          qty1: qty1,
+          qty4: qty4
+        });
+        addedCount++;
       }
     }
     
     currentInventory = newInventory;
-    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
-    
-    if (window.opener && window.opener.updateTyreInventory) {
-      window.opener.updateTyreInventory(currentInventory);
-    }
-    
-    updateStockPreview();
+    saveAndBroadcast();
     updateStats();
     
-    showMessage(`✅ CSV Import Complete!<br>Updated: ${updatedCount} tyres | Errors: ${errorCount}`, 'success');
+    showMessage(`✅ CSV Import Complete!<br>Updated: ${updatedCount} tyres | Added: ${addedCount} | Errors: ${errorCount}`, 'success');
     document.getElementById('csvFile').value = '';
   }
   
@@ -550,7 +660,18 @@
     document.getElementById('adminPassword').value = '';
     document.getElementById('loginError').style.display = 'none';
     currentUser = '';
+    hideResetConfirm();
   }
+  
+  // Listen for storage events to sync with stock page
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'headway_tyre_inventory' && e.newValue) {
+      try {
+        currentInventory = JSON.parse(e.newValue);
+        updateStats();
+      } catch(e) {}
+    }
+  });
   
   const dropArea = document.querySelector('.csv-upload-area');
   if (dropArea) {
