@@ -1061,6 +1061,49 @@ STALLION 385/65R22.5 APACHE-106 (TRAILER) 160K 20PR,385/65R22.5,2,3`;
     bindEvents();
     renderInventory();
   });
+  // Force refresh from localStorage on page focus
+  window.addEventListener('focus', function() {
+    const stored = localStorage.getItem('headway_tyre_inventory');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          currentInventory = parsed;
+          renderInventory();
+        }
+      } catch(e) {}
+    }
+  });
+  
+  // Also listen for storage events from admin page
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'headway_tyre_inventory' && e.newValue) {
+      try {
+        const updated = JSON.parse(e.newValue);
+        if (Array.isArray(updated)) {
+          currentInventory = updated;
+          renderInventory();
+          // Show a small notification that stock was updated
+          showUpdateNotification();
+        }
+      } catch(e) {}
+    }
+  });
+  
+  function showUpdateNotification() {
+    let notification = document.getElementById('stock-update-notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'stock-update-notification';
+      notification.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#10b981; color:white; padding:12px 24px; border-radius:40px; font-weight:bold; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+      document.body.appendChild(notification);
+    }
+    notification.innerHTML = '✅ Stock updated from admin!';
+    notification.style.display = 'block';
+    setTimeout(() => {
+      notification.style.display = 'none';
+    }, 3000);
+  }
 </script>
 </body>
 </html>
