@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Headway Tyres • Stock Inventory (No Prices)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f6fc;
+      color: #0a0f1c;
+    }
+
+    .main-header {
+      background: linear-gradient(115deg, #0b1120 0%, #141b2b 100%);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      border-bottom: 4px solid #f97316;
+    }
+    .main-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f97316, #facc15);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .main-header p {
+      color: #9ca3af;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    nav {
+      background: #0f172a;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 28px;
+      border-bottom: 1px solid #1e293b;
+    }
+    nav a {
+      color: #e2e8f0;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+    nav a:hover {
+      color: #f97316;
+    }
+
+    .filters-panel {
+      background: white;
+      padding: 1.5rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border-bottom: 1px solid #e9edf2;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      max-width: 1280px;
+      margin: 0 auto 20px auto;
+    }
+    .filter-row input, .filter-row select {
+      padding: 12px 18px;
+      border-radius: 48px;
+      border: 1px solid #cfdde6;
+      background: white;
+      font-size: 0.85rem;
+      min-width: 210px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .filter-row input:focus, .filter-row select:focus {
+      border-color: #f97316;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(249,115,22,0.2);
+    }
+    .category-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 1200px;
+      margin: 10px auto 0 auto;
+    }
+    .cat-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 8px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn.active-cat {
+      background: #f97316;
+      color: white;
+      box-shadow: 0 6px 12px -8px rgba(249,115,22,0.5);
+    }
+    .cat-btn:hover {
+      background: #f97316;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .stock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 28px;
+      padding: 40px 24px;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    .tyre-card {
+      background: white;
+      border-radius: 28px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+      border: 1px solid #eef2f8;
+    }
+    .tyre-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12);
+      border-color: #facc1520;
+    }
+    .img-wrapper {
+      height: 210px;
+      background: linear-gradient(145deg, #eef2ff, #e2e8f0);
+      position: relative;
+      overflow: hidden;
+    }
+    .tyre-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+    .tyre-card:hover .tyre-img {
+      transform: scale(1.03);
+    }
+    .stock-indicator {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 6px 14px;
+      border-radius: 60px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.7);
+      color: white;
+    }
+    .in-stock-tag { background: #10b981; color: white; }
+    .low-stock-tag { background: #f59e0b; color: #1e1b0e; }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+    .brand-name {
+      font-weight: 800;
+      color: #f97316;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .tyre-title {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.3;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .size-spec {
+      font-family: monospace;
+      background: #f1f5f9;
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 24px;
+      font-size: 0.7rem;
+      margin: 8px 0;
+    }
+    .vehicle-cat {
+      background: #eef2ff;
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 14px;
+    }
+
+    .qty-stats {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 14px;
+      margin: 14px 0 0 0;
+    }
+    .qty-row-flex {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 10px;
+    }
+    .qty1-label { font-weight: 700; color: #0f6e3f; background: #e0f2e9; padding: 2px 8px; border-radius: 24px; }
+    .qty4-label { font-weight: 700; color: #1e3a8a; background: #e0e7ff; padding: 2px 8px; border-radius: 24px; }
+    .total-qty-line {
+      border-top: 1px solid #e2e8f0;
+      margin-top: 8px;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: #f97316;
+      font-size: 0.9rem;
+    }
+
+    /* note: price section completely removed */
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      grid-column: 1 / -1;
+      background: #ffffffcc;
+      border-radius: 48px;
+      margin: 20px;
+    }
+    .empty-state h3 {
+      font-size: 1.5rem;
+      color: #475569;
+    }
+
+    footer {
+      background: #0f172a;
+      text-align: center;
+      padding: 28px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      border-top: 1px solid #1e293b;
+    }
+
+    .brand-sailun .img-wrapper { background: linear-gradient(145deg, #1e3a8a, #3b82f6); }
+    .brand-blackhawk .img-wrapper { background: linear-gradient(145deg, #111827, #374151); }
+    .brand-comforser .img-wrapper { background: linear-gradient(145deg, #14532d, #22c55e); }
+    .brand-headway .img-wrapper { background: linear-gradient(145deg, #7c2d12, #f97316); }
+    .brand-rovello .img-wrapper { background: linear-gradient(145deg, #581c87, #a855f7); }
+    .brand-dynamo .img-wrapper { background: linear-gradient(145deg, #831843, #ec4899); }
+    .brand-roadcruza .img-wrapper { background: linear-gradient(145deg, #854d0e, #facc15); }
+    .brand-truefast .img-wrapper { background: linear-gradient(145deg, #134e4a, #14b8a6); }
+
+    .generic-tyre {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 18px solid rgba(20,20,20,0.95);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background:
+        repeating-radial-gradient(circle at center,
+          #1f2937 0px,
+          #1f2937 8px,
+          #374151 8px,
+          #374151 16px);
+      box-shadow: inset 0 0 0 10px #9ca3af;
+    }
+
+    .generic-tyre:before {
+      content: '';
+      position: absolute;
+      inset: 22px;
+      border-radius: 50%;
+      background: #d1d5db;
+      box-shadow: inset 0 0 0 8px #6b7280;
+    }
+
+
+    @media (max-width: 680px) {
+      .stock-grid { gap: 18px; padding: 20px 16px; }
+      .filter-row input, .filter-row select { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="main-header">
+  <h1>⚙️ HEADWAY TYRES</h1>
+  <p>Browse our stock</p>
+</div>
+
+<nav>
+  <a href="index.html">Home</a>
+  <a href="#">Stock Inventory</a>
+  <a href="#">Tyre Guide</a>
+  <a href="#">Services</a>
+  <a href="admin.html">Admin</a>
+</nav>
+
+<div class="filters-panel">
+  <div class="filter-row">
+    <input type="text" id="globalSearch" placeholder="🔍 Search brand, model or size ...">
+    <select id="stockStatusFilter">
+      <option value="in-stock-only">✅ Show only in stock (total ≥ 1)</option>
+      <option value="low-stock">⚠️ Low stock (1–5 pcs)</option>
+      <option value="all-stock">📊 All (in stock only, out-of-stock hidden always)</option>
+    </select>
+  </div>
+
+  <!-- VEHICLE CATEGORY BUTTONS: Car, SUV, Truck, Agricultural, Machine -->
+  <div class="category-group" id="vehicleCategoryBar">
+    <button class="cat-btn active-cat" data-vehicle="all">🚗 ALL VEHICLES</button>
+    <button class="cat-btn" data-vehicle="Car">🚘 CAR</button>
+    <button class="cat-btn" data-vehicle="SUV">🚙 SUV / 4x4</button>
+    <button class="cat-btn" data-vehicle="Truck">🚛 TRUCK / BUS</button>
+    <button class="cat-btn" data-vehicle="Agricultural">🚜 AGRICULTURAL</button>
+    <button class="cat-btn" data-vehicle="Machine">🏗️ INDUSTRIAL</button>
+
+</div>
+
+<div class="stock-grid" id="stockGridContainer"></div>
+
+<footer>
+  <p>© 2025 Headway Tyre services</p>
+</footer>
+
+<script>
+  // --------------------------------------------------------------
+  // COMPLETE TYRE DATABASE (PRICES EXCLUDED FROM RENDER)
+  // Out-of-stock (total qty = 0) are NEVER shown.
+  // Every tyre displays qty1, qty4, total stock.
+  // --------------------------------------------------------------
+  const fullInventory = [
+    // SAILUN
+    { brand: "Sailun", model: "Atrezzo Elite 205/55R16", size: "205/55R16", vehicle: "Car", qty1: 8, qty4: 4 },
+    { brand: "Sailun", model: "Terramax S/T 265/70R16", size: "265/70R16", vehicle: "SUV", qty1: 11, qty4: 3 },
+    { brand: "Sailun", model: "Atrezzo ZSR 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 1, qty4: 17 },
+    { brand: "Sailun", model: "Atrezzo ZSR 235/55R18", size: "235/55R18", vehicle: "SUV", qty1: 12, qty4: 1 },
+    { brand: "Sailun", model: "S815 315/80R22.5", size: "315/80R22.5", vehicle: "Truck", qty1: 0, qty4: 0 },
+    { brand: "Sailun", model: "Atrezzo Elite 195/55R16", size: "195/55R16", vehicle: "Car", qty1: 9, qty4: 10 },
+    { brand: "Sailun", model: "Atrezzo Elite 205/60R16", size: "205/60R16", vehicle: "Car", qty1: 8, qty4: 46 },
+    { brand: "Sailun", model: "Terramax A/T 245/70R16", size: "245/70R16", vehicle: "SUV", qty1: 15, qty4: 0 },
+    { brand: "Sailun", model: "Atrezzo ZSR 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 7, qty4: 3 },
+    { brand: "Sailun", model: "Atrezzo ZSR SUV 235/45R19", size: "235/45R19", vehicle: "SUV", qty1: 1, qty4: 10 },
+    { brand: "Sailun", model: "Atrezzo ZSR SUV 245/45R19", size: "245/45R19", vehicle: "SUV", qty1: 6, qty4: 7 },
+    { brand: "Sailun", model: "Terramax A/T 265/50R20", size: "265/50R20", vehicle: "SUV", qty1: 9, qty4: 0 },
+    { brand: "Sailun", model: "S629 11R22.5", size: "11R22.5", vehicle: "Truck", qty1: 3, qty4: 0 },
+    { brand: "Sailun", model: "S607 315/80R22.5", size: "315/80R22.5", vehicle: "Truck", qty1: 4, qty4: 0 },
+    // BLACKHAWK
+    { brand: "Blackhawk", model: "Hiscend-H HV61 235/55R18", size: "235/55R18", vehicle: "SUV", qty1: 1, qty4: 0 },
+    { brand: "Blackhawk", model: "Hiscend-H HV61 215/55R18", size: "215/55R18", vehicle: "Car", qty1: 6, qty4: 10 },
+    { brand: "Blackhawk", model: "Street-H HH01 185/60R13", size: "185/60R13", vehicle: "Car", qty1: 4, qty4: 0 },
+    { brand: "Blackhawk", model: "Hiscend-H HT01 245/60R18", size: "245/60R18", vehicle: "SUV", qty1: 8, qty4: 10 },
+    { brand: "Blackhawk", model: "Street-H HU02 275/30R19", size: "275/30R19", vehicle: "Car", qty1: 18, qty4: 10 },
+    { brand: "Blackhawk", model: "BAM05 9.00R20", size: "9.00R20", vehicle: "Truck", qty1: 3, qty4: 5 },
+    { brand: "Blackhawk", model: "BDR78 315/80R22.5", size: "315/80R22.5", vehicle: "Truck", qty1: 7, qty4: 0 },
+    { brand: "Blackhawk", model: "BDR75 12R22.5", size: "12R22.5", vehicle: "Truck", qty1: 0, qty4: 1 },
+    // COMFORSER
+    { brand: "Comforser", model: "CF610 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 8, qty4: 7 },
+    { brand: "Comforser", model: "CF350 165R14C", size: "165R14C", vehicle: "Truck", qty1: 11, qty4: 23 },
+    { brand: "Comforser", model: "CF510 195/50R15", size: "195/50R15", vehicle: "Car", qty1: 7, qty4: 15 },
+    { brand: "Comforser", model: "CF1000 A/T 245/70R16", size: "245/70R16", vehicle: "SUV", qty1: 7, qty4: 1 },
+    { brand: "Comforser", model: "CF710 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 6, qty4: 5 },
+    { brand: "Comforser", model: "CF2000 H/T 235/65R17", size: "235/65R17", vehicle: "SUV", qty1: 10, qty4: 3 },
+    { brand: "Comforser", model: "CF1100 AT-M 265/65R17", size: "265/65R17", vehicle: "SUV", qty1: 8, qty4: 20 },
+    { brand: "Comforser", model: "CF710 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 25, qty4: 14 },
+    { brand: "Comforser", model: "CF1100 265/60R18", size: "265/60R18", vehicle: "SUV", qty1: 2, qty4: 18 },
+    { brand: "Comforser", model: "CF1000 30x9.50R15LT", size: "30x9.50R15LT", vehicle: "SUV", qty1: 6, qty4: 10 },
+    // HEADWAY
+    { brand: "Headway", model: "HR601 165R13C", size: "165R13C", vehicle: "Truck", qty1: 2, qty4: 1 },
+    { brand: "Headway", model: "HH301 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 6, qty4: 9 },
+    { brand: "Headway", model: "HR601 185R14C", size: "185R14C", vehicle: "Truck", qty1: 11, qty4: 8 },
+    { brand: "Headway", model: "HH301 195/50R15", size: "195/50R15", vehicle: "Car", qty1: 10, qty4: 0 },
+    { brand: "Headway", model: "HH301 205/55R16", size: "205/55R16", vehicle: "Car", qty1: 10, qty4: 8 },
+    { brand: "Headway", model: "HU901 225/45R17", size: "225/45R17", vehicle: "Car", qty1: 8, qty4: 12 },
+    { brand: "Headway", model: "Road Champ 175/70R13", size: "175/70R13", vehicle: "Car", qty1: 20, qty4: 0 },
+    // ROVELLO
+    { brand: "Rovello", model: "R-Terrain 255/70R18", size: "255/70R18", vehicle: "SUV", qty1: 5, qty4: 0 },
+    { brand: "Rovello", model: "RPX-988 235/55R17", size: "235/55R17", vehicle: "Car", qty1: 6, qty4: 0 },
+    { brand: "Rovello", model: "RDR37 295/80R22.5", size: "295/80R22.5", vehicle: "Truck", qty1: 0, qty4: 0 },
+    // DYNAMO
+    { brand: "Dynamo", model: "Street-H MU71 225/55R16", size: "225/55R16", vehicle: "Car", qty1: 10, qty4: 0 },
+    { brand: "Dynamo", model: "Highway Star 215/55R17", size: "215/55R17", vehicle: "Car", qty1: 7, qty4: 0 },
+    { brand: "Dynamo", model: "Street-H MU71 245/40R17", size: "245/40R17", vehicle: "Car", qty1: 7, qty4: 0 },
+    { brand: "Dynamo", model: "Street-H MU71 245/45R18", size: "245/45R18", vehicle: "Car", qty1: 4, qty4: 0 },
+    // ROADCRUZA
+    { brand: "Roadcruza", model: "Rugged MT 35x12.5R20", size: "35x12.5R20", vehicle: "SUV", qty1: 3, qty4: 0 },
+    { brand: "Roadcruza", model: "RA1100 AT-M 245/75R16LT", size: "245/75R16LT", vehicle: "SUV", qty1: 10, qty4: 0 },
+    { brand: "Roadcruza", model: "RA3200 M/T 31x10.50R15LT", size: "31x10.50R15LT", vehicle: "SUV", qty1: 6, qty4: 10 },
+    // TRUEFAST
+    { brand: "Truefast", model: "TF-Speed 225/40R18", size: "225/40R18", vehicle: "Car", qty1: 4, qty4: 2 },
+    { brand: "Truefast", model: "TA268 9.00R20", size: "9.00R20", vehicle: "Truck", qty1: 5, qty4: 0 },
+    { brand: "Truefast", model: "TF128 11R22.5", size: "11R22.5", vehicle: "Truck", qty1: 1, qty4: 0 },
+    // AGRICULTURAL / MACHINE (additional category items from original data for Agricultural & Machine)
+    { brand: "Comforser", model: "Agri-Trac R-1 11.2R24", size: "11.2R24", vehicle: "Agricultural", qty1: 4, qty4: 2 },
+    { brand: "Sailun", model: "Farm Radial 420/85R28", size: "420/85R28", vehicle: "Agricultural", qty1: 3, qty4: 1 },
+    { brand: "Headway", model: "Industrial Solid 7.00-12", size: "7.00-12", vehicle: "Machine", qty1: 6, qty4: 0 },
+    { brand: "Blackhawk", model: "Loader L5 17.5-25", size: "17.5-25", vehicle: "Machine", qty1: 2, qty4: 2 },
+    { brand: "Rovello", model: "Agri-Trac 14.9R28", size: "14.9R28", vehicle: "Agricultural", qty1: 5, qty4: 3 }
+  ];
+
+  // helper: get total qty
+  function getTotalQty(tyre) {
+    return (tyre.qty1 || 0) + (tyre.qty4 || 0);
+  }
+
+  // filter function: out-of-stock (total === 0) NEVER shown
+  function filterTyres(tyres, searchText, vehicleCat, stockMode) {
+    return tyres.filter(t => {
+      const total = getTotalQty(t);
+      // 1) HIDE out-of-stock products completely
+      if (total === 0) return false;
+
+      // 2) stock status filter (applied on already in-stock items)
+      if (stockMode === 'low-stock') {
+        if (total > 5) return false;
+      } else if (stockMode === 'in-stock-only') {
+        // already ensured total>0, so it's fine, but low-stock items are still shown if total<=5 but that's separate.
+        // for "in-stock-only" we show any total >=1, no extra restriction.
+      } else if (stockMode === 'all-stock') {
+        // show all in stock items, regardless of quantity (already out-of-stock removed)
+      }
+
+      // 3) vehicle category match
+      const vehicleMatch = (vehicleCat === 'all') || (t.vehicle === vehicleCat);
+
+      // 4) search match
+      const searchLower = searchText.toLowerCase();
+      const searchMatch = searchText === '' ||
+        t.brand.toLowerCase().includes(searchLower) ||
+        t.model.toLowerCase().includes(searchLower) ||
+        t.size.toLowerCase().includes(searchLower);
+
+      return vehicleMatch && searchMatch;
+    });
+  }
+
+  // get image based on brand/vehicle (vibrant visuals)
+  function getTyreImage(brand, vehicle) {
+    const brandMap = {
+      'Sailun': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+      'Blackhawk': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&auto=format',
+      'Comforser': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format',
+      'Headway': 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=500&auto=format',
+      'Rovello': 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=500&auto=format',
+      'Dynamo': 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=500&auto=format',
+      'Roadcruza': 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=500&auto=format',
+      'Truefast': 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=500&auto=format'
+    };
+    if (brandMap[brand]) return brandMap[brand];
+    if (vehicle === 'Agricultural') return 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7e4c?w=500&auto=format';
+    if (vehicle === 'Machine') return 'https://images.unsplash.com/photo-1573681649908-3f5a2a5da8f7?w=500&auto=format';
+    if (vehicle === 'Truck') return 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=500&auto=format';
+    return 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=500&auto=format';
+  }
+
+  function renderInventory() {
+    const searchInput = document.getElementById('globalSearch').value;
+    const stockSelect = document.getElementById('stockStatusFilter').value;
+    const activeVehicleBtn = document.querySelector('.cat-btn.active-cat');
+    let vehicleFilter = 'all';
+    if (activeVehicleBtn) vehicleFilter = activeVehicleBtn.getAttribute('data-vehicle') || 'all';
+
+    const filteredList = filterTyres(fullInventory, searchInput, vehicleFilter, stockSelect);
+    const grid = document.getElementById('stockGridContainer');
+    if (!grid) return;
+
+    if (filteredList.length === 0) {
+      grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or category — out-of-stock items are never shown.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = '';
+    filteredList.forEach(tyre => {
+      const total = getTotalQty(tyre);
+      let stockStatusClass = 'in-stock-tag';
+      let stockLabel = 'IN STOCK';
+      if (total <= 5) {
+        stockStatusClass = 'low-stock-tag';
+        stockLabel = '⚠️ LOW STOCK';
+      }
+
+      const card = document.createElement('div');
+      card.className = 'tyre-card brand-' + tyre.brand.toLowerCase();
+      card.innerHTML = `
+        <div class="img-wrapper">
+          <div class="generic-tyre"></div>
+          <div class="stock-indicator ${stockStatusClass}">${stockLabel} · ${total} pcs</div>
+        </div>
+        <div class="card-body">
+          <div class="brand-name">${tyre.brand}</div>
+          <div class="tyre-title">${tyre.model}</div>
+          <div class="size-spec">📐 ${tyre.size}</div>
+          <div class="vehicle-cat">${tyre.vehicle}</div>
+
+          <div class="qty-stats">
+            <div class="qty-row-flex">
+              <span class="qty1-label">📦 Main Stock (Qty1)</span>
+              <span style="font-weight:700;">${tyre.qty1 || 0} pcs</span>
+            </div>
+            <div class="qty-row-flex">
+              <span class="qty4-label">🏪 Secondary Stock (Qty4)</span>
+              <span style="font-weight:700;">${tyre.qty4 || 0} pcs</span>
+            </div>
+            <div class="total-qty-line">
+              <span>📊 Total Available</span>
+              <span style="font-size:1rem;">${total} pcs</span>
+            </div>
+          </div>
+          <!-- price section intentionally omitted -->
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // event binding & active category
+  function bindEvents() {
+    const searchEl = document.getElementById('globalSearch');
+    const stockFilterEl = document.getElementById('stockStatusFilter');
+    if (searchEl) searchEl.addEventListener('input', () => renderInventory());
+    if (stockFilterEl) stockFilterEl.addEventListener('change', () => renderInventory());
+
+    const catButtons = document.querySelectorAll('.cat-btn');
+    catButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catButtons.forEach(b => b.classList.remove('active-cat'));
+        btn.classList.add('active-cat');
+        renderInventory();
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bindEvents();
+    renderInventory();
+  });
+</script>
+</body>
+</html>

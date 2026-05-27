@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal - Headway Tyre Services</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-container, .admin-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .admin-container {
+      max-width: 1000px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #ff6a00;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #ff6a00, #ff9500);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,106,0,0.3);
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c00;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .csv-upload-area {
+      border: 3px dashed #ff6a00;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .csv-upload-area:hover {
+      background: #fff5e6;
+    }
+
+    .csv-format {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+
+    .csv-format code {
+      background: #e0e0e0;
+      padding: 2px 6px;
+      border-radius: 5px;
+      display: inline-block;
+      margin: 2px 0;
+    }
+
+    .stock-preview {
+      margin-top: 30px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .stock-item {
+      background: #f9f9f9;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stock-info {
+      flex: 1;
+    }
+
+    .stock-info strong {
+      color: #ff6a00;
+    }
+
+    .stock-quantity {
+      display: flex;
+      gap: 15px;
+      font-weight: bold;
+    }
+
+    .qty1-badge {
+      color: #4caf50;
+    }
+
+    .qty4-badge {
+      color: #2196f3;
+    }
+
+    .total-badge {
+      color: #ff9500;
+    }
+
+    .logout-btn {
+      background: #666;
+      margin-top: 20px;
+    }
+
+    .logout-btn:hover {
+      background: #888;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-link a {
+      color: #ff6a00;
+      text-decoration: none;
+    }
+
+    .stats-box {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 768px) {
+      .login-container, .admin-container {
+        padding: 25px;
+      }
+      
+      .stock-item {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .stock-quantity {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loginSection" class="login-container">
+  <h1>🔐 Admin Access</h1>
+  <p class="subtitle">Enter your credentials to manage tyre inventory</p>
+  
+  <div id="loginError" class="error-message" style="display: none;"></div>
+  
+  <div class="input-group">
+    <label>Username</label>
+    <input type="text" id="adminUsername" placeholder="Enter username">
+  </div>
+  
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="adminPassword" placeholder="Enter password" onkeypress="if(event.key==='Enter') checkPassword()">
+  </div>
+  
+  <button onclick="checkPassword()">Login</button>
+  
+  <div class="back-link">
+    <a href="stock.html">← Back to Stock Page</a>
+  </div>
+</div>
+
+<div id="adminSection" class="admin-container" style="display: none;">
+  <h1>📊 Admin Dashboard</h1>
+  <p class="subtitle" id="welcomeUser"></p>
+  
+  <div id="adminMessage"></div>
+  
+  <div class="csv-upload-area" onclick="document.getElementById('csvFile').click()">
+    <p>📁 Click to upload CSV file</p>
+    <p style="font-size: 0.8rem; margin-top: 10px;">or drag and drop</p>
+    <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleCSVUpload(this.files[0])">
+  </div>
+  
+  <div class="csv-format">
+    <strong>📋 CSV Format Required:</strong><br>
+    Your CSV file should have these columns (headers are optional but recommended):<br>
+    <code>brand</code>, <code>description/model</code>, <code>size</code>, <code>qty1</code>, <code>qty4</code><br><br>
+    <strong>Example row:</strong><br>
+    <code>Sailun,Atrezzo Elite 205/55R16,205/55R16,8,4</code><br><br>
+    <strong>📌 Important:</strong><br>
+    • Only <strong>ITEM DESCRIPTION (model)</strong>, <strong>SIZE</strong>, <strong>QTY1</strong>, and <strong>QTY4</strong> will be updated<br>
+    • Vehicle type will remain unchanged<br>
+    • The CSV will UPDATE existing tyres based on brand matching
+  </div>
+  
+  <button onclick="downloadSampleCSV()" style="background: #2196F3; margin-bottom: 20px;">📥 Download Sample CSV Template</button>
+  
+  <div id="statsContainer" class="stats-box"></div>
+  
+  <h3>Current Stock Preview</h3>
+  <div id="stockPreview" class="stock-preview"></div>
+  
+  <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+  <div class="back-link">
+    <a href="stock.html">← View Stock Page</a>
+  </div>
+</div>
+
+<script>
+  // User accounts
+  const users = {
+    'Jojo': 'jojo123',
+    'Arris': 'arris456',
+    'Mr Hou': 'mrhou789'
+  };
+  
+  let currentUser = '';
+  let currentInventory = [];
+
+  function checkPassword() {
+    const usernameInput = document.getElementById('adminUsername');
+    const passwordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (users[username] && users[username] === password) {
+      currentUser = username;
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('adminSection').style.display = 'block';
+      document.getElementById('welcomeUser').innerHTML = `Welcome, ${username}! 👋`;
+      loadCurrentInventory();
+    } else {
+      loginError.style.display = 'block';
+      loginError.textContent = '❌ Incorrect username or password. Access denied.';
+      passwordInput.value = '';
+    }
+  }
+  
+  function loadCurrentInventory() {
+    const stored = localStorage.getItem('headway_tyre_inventory');
+    if (stored) {
+      currentInventory = JSON.parse(stored);
+    } else {
+      currentInventory = [];
+    }
+    updateStockPreview();
+    updateStats();
+  }
+  
+  function updateStats() {
+    const statsDiv = document.getElementById('statsContainer');
+    if (!statsDiv) return;
+    
+    let totalQty1 = 0;
+    let totalQty4 = 0;
+    let totalProducts = currentInventory.length;
+    let inStockCount = 0;
+    
+    currentInventory.forEach(tyre => {
+      totalQty1 += tyre.qty1 || 0;
+      totalQty4 += tyre.qty4 || 0;
+      if ((tyre.qty1 || 0) + (tyre.qty4 || 0) > 0) inStockCount++;
+    });
+    
+    statsDiv.innerHTML = `
+      <div class="stat">
+        <div class="stat-value">${totalProducts}</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color: #4caf50;">${totalQty1}</div>
+        <div class="stat-label">Total Qty1 (Main Stock)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color: #2196f3;">${totalQty4}</div>
+        <div class="stat-label">Total Qty4 (Secondary Stock)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">${inStockCount}</div>
+        <div class="stat-label">In Stock Items</div>
+      </div>
+    `;
+  }
+  
+  function updateStockPreview() {
+    const previewDiv = document.getElementById('stockPreview');
+    if (!previewDiv) return;
+    
+    if (currentInventory.length === 0) {
+      previewDiv.innerHTML = '<p style="text-align: center; color: #999;">No tyres in inventory. Upload CSV to add tyres.</p>';
+      return;
+    }
+    
+    previewDiv.innerHTML = '';
+    currentInventory.slice(0, 20).forEach(tyre => {
+      const total = (tyre.qty1 || 0) + (tyre.qty4 || 0);
+      const item = document.createElement('div');
+      item.className = 'stock-item';
+      item.innerHTML = `
+        <div class="stock-info">
+          <strong>${tyre.brand}</strong><br>
+          <small>${tyre.model}</small><br>
+          <small style="color:#888;">${tyre.size} | ${tyre.vehicle}</small>
+        </div>
+        <div class="stock-quantity">
+          <span class="qty1-badge">📦 Qty1: ${tyre.qty1 || 0}</span>
+          <span class="qty4-badge">🏪 Qty4: ${tyre.qty4 || 0}</span>
+          <span class="total-badge">📊 Total: ${total}</span>
+        </div>
+      `;
+      previewDiv.appendChild(item);
+    });
+    
+    if (currentInventory.length > 20) {
+      const more = document.createElement('div');
+      more.className = 'stock-item';
+      more.innerHTML = `<div style="text-align: center; width: 100%;">... and ${currentInventory.length - 20} more items</div>`;
+      previewDiv.appendChild(more);
+    }
+  }
+  
+  function handleCSVUpload(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      parseCSVAndUpdate(e.target.result);
+    };
+    reader.readAsText(file);
+  }
+  
+  function parseCSVAndUpdate(csvContent) {
+    const lines = csvContent.split(/\r?\n/);
+    if (lines.length === 0) {
+      showMessage('Empty CSV file', 'error');
+      return;
+    }
+    
+    const firstLine = lines[0].toLowerCase();
+    const hasHeaders = firstLine.includes('brand');
+    let startRow = hasHeaders ? 1 : 0;
+    
+    let updatedCount = 0;
+    let errorCount = 0;
+    const newInventory = [...currentInventory];
+    
+    for (let i = startRow; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const columns = parseCSVLine(line);
+      if (columns.length < 4) {
+        errorCount++;
+        continue;
+      }
+      
+      // Columns: brand, description/model, size, qty1, qty4 (optional)
+      const brand = columns[0].trim();
+      const model = columns[1].trim();
+      const size = columns[2].trim();
+      const qty1 = parseInt(columns[3], 10);
+      const qty4 = columns.length > 4 ? parseInt(columns[4], 10) : 0;
+      
+      if (isNaN(qty1)) {
+        errorCount++;
+        continue;
+      }
+      
+      // Find existing tyre by brand only (preserve vehicle type)
+      const existingIndex = newInventory.findIndex(t => 
+        t.brand.toLowerCase() === brand.toLowerCase()
+      );
+      
+      if (existingIndex >= 0) {
+        newInventory[existingIndex].model = model;
+        newInventory[existingIndex].size = size;
+        newInventory[existingIndex].qty1 = qty1;
+        newInventory[existingIndex].qty4 = qty4;
+        updatedCount++;
+      }
+    }
+    
+    currentInventory = newInventory;
+    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
+    
+    if (window.opener && window.opener.updateTyreInventory) {
+      window.opener.updateTyreInventory(currentInventory);
+    }
+    
+    updateStockPreview();
+    updateStats();
+    
+    showMessage(`✅ CSV Import Complete!<br>Updated: ${updatedCount} tyres | Errors: ${errorCount}`, 'success');
+    document.getElementById('csvFile').value = '';
+  }
+  
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+    return result;
+  }
+  
+  function showMessage(msg, type) {
+    const msgDiv = document.getElementById('adminMessage');
+    msgDiv.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${msg}</div>`;
+    setTimeout(() => {
+      msgDiv.innerHTML = '';
+    }, 5000);
+  }
+  
+  function downloadSampleCSV() {
+    const sampleData = [
+      'brand,description,size,qty1,qty4',
+      'Sailun,Atrezzo Elite 205/55R16,205/55R16,8,4',
+      'Blackhawk,Hiscend-H HV61 235/55R18,235/55R18,1,0',
+      'Headway,Road Champ 175/70R13,175/70R13,20,0',
+      'Comforser,CF610 175/70R13,175/70R13,8,7'
+    ];
+    const blob = new Blob([sampleData.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tyre_inventory_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  
+  function logout() {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('adminSection').style.display = 'none';
+    document.getElementById('adminUsername').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    currentUser = '';
+  }
+  
+  const dropArea = document.querySelector('.csv-upload-area');
+  if (dropArea) {
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.style.background = '#fff5e6';
+    });
+    dropArea.addEventListener('dragleave', () => {
+      dropArea.style.background = '';
+    });
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.style.background = '';
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.csv')) {
+        handleCSVUpload(file);
+      } else {
+        showMessage('Please upload a CSV file', 'error');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
