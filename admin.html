@@ -306,17 +306,16 @@
   </div>
   
   <div class="csv-format">
-    <strong>📋 CSV Format Required:</strong><br>
-    Your CSV file should have these columns (headers are optional but recommended):<br>
-    <code>brand</code>, <code>description/model</code>, <code>size</code>, <code>qty1</code>, <code>qty4</code><br><br>
-    <strong>Example row:</strong><br>
-    <code>Sailun,Atrezzo Elite 205/55R16,205/55R16,8,4</code><br><br>
-    <strong>📌 Important:</strong><br>
-    • CSV will UPDATE existing tyres based on <strong>brand + size</strong> matching<br>
-    • Updates <strong>model/description</strong>, <strong>size</strong>, <strong>qty1</strong>, and <strong>qty4</strong><br>
-    • Vehicle type will remain unchanged<br>
-    • Use the Reset button before upload to start fresh<br>
-    • <strong>Zero quantities (0) will be saved</strong> - items with zero total won't show on stock page
+    <strong>📋 CSV Format Accepted:</strong><br>
+    Your CSV can have these column formats:<br>
+    • <code>Item Description, Size, Qty 1, Qty 4</code> (recommended - matches your file)<br>
+    • <code>brand, description, size, qty1, qty4</code><br><br>
+    <strong>How it works:</strong><br>
+    • Extracts brand from the beginning of Item Description (SAILUN, BLACKHAWK, etc.)<br>
+    • Updates existing tyres by <strong>brand + size</strong> matching<br>
+    • Updates <strong>qty1</strong> and <strong>qty4</strong> with your CSV values<br>
+    • Skips non-tyre items (batteries, patches, services, etc.)<br>
+    • <strong>Zero quantities (0) will be saved</strong>
   </div>
   
   <button onclick="downloadSampleCSV()" style="background: #2196F3; margin-bottom: 20px;">📥 Download Sample CSV Template</button>
@@ -452,10 +451,8 @@
   }
   
   function saveAndBroadcast() {
-    // Save to localStorage
     localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
     
-    // Force a storage event to notify other tabs
     const event = new StorageEvent('storage', {
       key: 'headway_tyre_inventory',
       newValue: JSON.stringify(currentInventory),
@@ -464,18 +461,15 @@
     });
     window.dispatchEvent(event);
     
-    // Also notify stock page if it's the same window (opener)
     if (window.opener && !window.opener.closed) {
       if (window.opener.updateTyreInventory) {
         window.opener.updateTyreInventory(currentInventory);
       }
-      // Also try to trigger a refresh on the stock page
       try {
         window.opener.location.reload();
       } catch(e) {}
     }
     
-    // Create a timestamp to trigger storage events in other tabs
     localStorage.setItem('headway_tyre_update', Date.now().toString());
     setTimeout(() => {
       localStorage.removeItem('headway_tyre_update');
@@ -517,6 +511,47 @@
     `;
   }
   
+  // Extract brand from description text
+  function extractBrand(description) {
+    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER)/i;
+    const match = description.match(brandPattern);
+    if (match) {
+      return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
+    }
+    return null;
+  }
+  
+  // Check if item is a tyre (skip services, batteries, patches)
+  function isTyreItem(description, size) {
+    const skipKeywords = [
+      "FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", 
+      "LABOUR", "VULCANIZING", "CEMENT", "SOLUTION", "BUFFING", "SPREADER", 
+      "VALVE", "PLUG", "CABLE", "RIM", "BATTERY", "TUBE", "FLAP", "STONE", 
+      "WHEEL", "CLEANER", "SCRAPER", "DRILL", "STITCHER", "EXTENSION", 
+      "CORE", "GAITER", "CUSHION", "NYLON", "INSPECTION", "MACHINE", 
+      "VULCANIZER", "ADHESIVE", "WEIGHTS", "HOT PATCH", "EMERALD", "CAMEL",
+      "TAITEC", "KAMON", "BRAID", "CURL", "DREADLOCK", "YAKI", "SILKY"
+    ];
+    const upperDesc = description.toUpperCase();
+    for (const kw of skipKeywords) {
+      if (upperDesc.includes(kw)) {
+        return false;
+      }
+    }
+    if (!size || size === "VARIOUS" || size === "ASSORTED" || size === "610" || 
+        size === "611" || size === "612" || size === "615" || size === "616S" ||
+        size === "616SD" || size === "619" || size === "621" || size === "622" ||
+        size === "628" || size === "630" || size === "631" || size === "636S" ||
+        size === "636SD" || size === "638" || size === "639" || size === "643" ||
+        size === "646" || size === "647" || size === "650" || size === "652" ||
+        size === "656" || size === "657" || size === "658" || size === "668" ||
+        size === "669" || size === "674/G31" || size === "682" || size === "683" ||
+        size === "688" || size === "689" || size === "692") {
+      return false;
+    }
+    return true;
+  }
+  
   function handleCSVUpload(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -533,12 +568,13 @@
       return;
     }
     
+    // Detect header format
     const firstLine = lines[0].toLowerCase();
-    const hasHeaders = firstLine.includes('brand') || firstLine.includes('description');
-    let startRow = hasHeaders ? 1 : 0;
+    let isStandardFormat = firstLine.includes('brand') && firstLine.includes('description');
+    let isItemDescFormat = firstLine.includes('item description') || firstLine.includes('description');
+    let startRow = 1;
     
     let updatedCount = 0;
-    let addedCount = 0;
     let errorCount = 0;
     const newInventory = JSON.parse(JSON.stringify(currentInventory));
     
@@ -547,55 +583,81 @@
       if (!line) continue;
       
       const columns = parseCSVLine(line);
-      if (columns.length < 4) {
+      if (columns.length < 3) {
         errorCount++;
         continue;
       }
       
-      const brand = columns[0].trim();
-      const model = columns[1].trim();
-      const size = columns[2].trim();
-      const qty1 = parseInt(columns[3], 10);
-      const qty4 = columns.length > 4 ? parseInt(columns[4], 10) : 0;
+      let brand = null;
+      let description = "";
+      let size = "";
+      let qty1 = 0;
+      let qty4 = 0;
       
-      if (isNaN(qty1)) {
-        errorCount++;
-        continue;
+      if (isStandardFormat) {
+        // Format: brand, description, size, qty1, qty4
+        brand = columns[0]?.trim() || "";
+        description = columns[1]?.trim() || "";
+        size = columns[2]?.trim() || "";
+        qty1 = parseInt(columns[3], 10) || 0;
+        qty4 = columns.length > 4 ? (parseInt(columns[4], 10) || 0) : 0;
+      } else {
+        // Format: Item Description, Size, Qty 1, Qty 4 (your CSV format)
+        description = columns[0]?.trim() || "";
+        size = columns[1]?.trim() || "";
+        qty1 = parseInt(columns[2], 10) || 0;
+        qty4 = columns.length > 3 ? (parseInt(columns[3], 10) || 0) : 0;
+        
+        // Extract brand from description
+        brand = extractBrand(description);
       }
       
+      // Clean up
+      description = description.replace(/^["']|["']$/g, '');
+      size = size.replace(/^["']|["']$/g, '');
+      
+      // Skip invalid entries
       if (!brand || !size) {
         errorCount++;
         continue;
       }
       
+      // Skip non-tyre items
+      if (!isTyreItem(description, size)) {
+        continue;
+      }
+      
+      // Fix common size formatting issues
+      size = size.replace(/^0[5-9]-/, ''); // Fix malformed dates like "05-17-25" -> "17.5-25"
+      if (size.includes('-') && !size.includes('R') && !size.includes('x')) {
+        // Keep as is for agricultural sizes like 16.9-28
+      }
+      
       // Find existing tyre by brand AND size
       const existingIndex = newInventory.findIndex(t => 
         t.brand.toLowerCase() === brand.toLowerCase() && 
-        t.size.toLowerCase() === size.toLowerCase()
+        (t.size === size || t.size.replace(/LT$/, '') === size.replace(/LT$/, ''))
       );
       
       if (existingIndex >= 0) {
-        newInventory[existingIndex].model = model;
+        // Update existing tyre
+        newInventory[existingIndex].model = description.substring(0, 80);
         newInventory[existingIndex].size = size;
         newInventory[existingIndex].qty1 = qty1;
         newInventory[existingIndex].qty4 = qty4;
         updatedCount++;
       } else {
-        let vehicle = "Car";
-        const sizeUpper = size.toUpperCase();
-        if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5')) vehicle = "Truck";
-        else if (sizeUpper.includes('LT') || (parseInt(sizeUpper) >= 235 && sizeUpper.includes('R'))) vehicle = "SUV";
-        else if (sizeUpper.includes('R24') || sizeUpper.includes('R28')) vehicle = "Agricultural";
-        
-        newInventory.push({
-          brand: brand,
-          model: model,
-          size: size,
-          vehicle: vehicle,
-          qty1: qty1,
-          qty4: qty4
-        });
-        addedCount++;
+        // Brand exists? Try to find by brand only and update size match
+        const brandOnlyIndex = newInventory.findIndex(t => 
+          t.brand.toLowerCase() === brand.toLowerCase()
+        );
+        if (brandOnlyIndex >= 0) {
+          newInventory[brandOnlyIndex].model = description.substring(0, 80);
+          newInventory[brandOnlyIndex].size = size;
+          newInventory[brandOnlyIndex].qty1 = qty1;
+          newInventory[brandOnlyIndex].qty4 = qty4;
+          updatedCount++;
+        }
       }
     }
     
@@ -603,7 +665,7 @@
     saveAndBroadcast();
     updateStats();
     
-    showMessage(`✅ CSV Import Complete!<br>Updated: ${updatedCount} tyres | Added: ${addedCount} | Errors: ${errorCount}`, 'success');
+    showMessage(`✅ CSV Import Complete!<br>Updated: ${updatedCount} tyres | Errors/Skipped: ${errorCount}`, 'success');
     document.getElementById('csvFile').value = '';
   }
   
@@ -636,13 +698,13 @@
   
   function downloadSampleCSV() {
     const sampleData = [
-      'brand,description,size,qty1,qty4',
-      'Sailun,Atrezzo Elite 205/55R16,205/55R16,8,4',
-      'Blackhawk,Hiscend-H HV61 235/55R18,235/55R18,1,0',
-      'Headway,Road Champ 175/70R13,175/70R13,20,0',
-      'Comforser,CF610 175/70R13,175/70R13,8,7'
+      'Item Description,Size,Qty 1,Qty 4',
+      'SAILUN Atrezzo Elite 205/55R16,205/55R16,15,20',
+      'BLACKHAWK Hiscend-H HV61 235/55R18,235/55R18,5,8',
+      'HEADWAY Road Champ 175/70R13,175/70R13,30,12',
+      'COMFORSER CF610 175/70R13,175/70R13,10,15'
     ];
-    const blob = new Blob([sampleData.join('\n')], { type: 'text/csv' });
+    const blob = new Blob(["\uFEFF" + sampleData.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -663,7 +725,6 @@
     hideResetConfirm();
   }
   
-  // Listen for storage events to sync with stock page
   window.addEventListener('storage', (e) => {
     if (e.key === 'headway_tyre_inventory' && e.newValue) {
       try {
