@@ -39,7 +39,7 @@
     }
 
     .admin-container {
-      max-width: 1400px;
+      max-width: 1500px;
     }
 
     h1 {
@@ -180,7 +180,18 @@
     .price-display {
       font-weight: 700;
       color: #ff6a00;
-      font-size: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .price-excluding {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .price-including {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #10b981;
     }
 
     .out-of-stock-badge {
@@ -309,13 +320,24 @@
       color: white;
     }
 
+    .vat-note {
+      text-align: right;
+      font-size: 0.7rem;
+      color: #666;
+      margin-bottom: 10px;
+      padding-right: 10px;
+    }
+
     @media (max-width: 768px) {
       .login-container, .admin-container {
         padding: 25px;
       }
       .stock-table th, .stock-table td {
         padding: 8px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+      }
+      .price-including, .price-excluding {
+        font-size: 0.7rem;
       }
     }
   </style>
@@ -396,6 +418,11 @@
     <button class="refresh-stock-btn" id="refreshStockBtn">🔄 Sync from Google Sheet</button>
   </div>
   
+  <!-- VAT Note -->
+  <div class="vat-note">
+    💰 VAT Rate: 15% | Prices shown are <strong>Excluding VAT</strong> and <strong>Including VAT</strong>
+  </div>
+  
   <!-- Stock Table -->
   <div class="stock-table-container" id="stockTableContainer">
     <div class="loading-spinner">
@@ -412,8 +439,11 @@
 
 <script>
   // Google Sheet CSV URL (same as stock.html)
-  // Expected columns: Item Description, Size, Qty 1, Qty 4, Price (optional)
+  // Expected columns: Item Description, Size, Qty 1, Qty 4, Price (optional - this is the base/excluding VAT price)
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
+  
+  // VAT Rate (15% as per Botswana standard)
+  const VAT_RATE = 0.15;
   
   let currentInventory = [];
   let isLoading = false;
@@ -478,6 +508,22 @@
     return true;
   }
 
+  // Calculate price including VAT
+  function getPriceWithVAT(priceExcluding) {
+    if (priceExcluding && !isNaN(parseFloat(priceExcluding)) && parseFloat(priceExcluding) > 0) {
+      return parseFloat(priceExcluding) * (1 + VAT_RATE);
+    }
+    return null;
+  }
+
+  // Format price for display
+  function formatPrice(price) {
+    if (price && !isNaN(price) && price > 0) {
+      return `P ${price.toFixed(2)}`;
+    }
+    return '—';
+  }
+
   // Parse CSV and build inventory with price (include ALL rows, even zero stock)
   function parseCSVToInventory(csvText) {
     const lines = csvText.split(/\r?\n/);
@@ -534,18 +580,18 @@
       let qty1 = parseInt(columns[2], 10) || 0;
       let qty4 = columns.length > 3 ? (parseInt(columns[3], 10) || 0) : 0;
       
-      // Extract price if available (from column 4 or 5 depending on structure)
-      let price = null;
+      // Extract price if available (this is the base/excluding VAT price)
+      let priceExcludingVAT = null;
       if (priceColumnIndex >= 0 && columns.length > priceColumnIndex) {
         const priceStr = columns[priceColumnIndex].replace(/^["']|["']$/g, '').trim();
         if (priceStr && !isNaN(parseFloat(priceStr))) {
-          price = parseFloat(priceStr);
+          priceExcludingVAT = parseFloat(priceStr);
         }
       } else if (columns.length > 4) {
         // Try column 4 as price
         const priceStr = columns[4].replace(/^["']|["']$/g, '').trim();
         if (priceStr && !isNaN(parseFloat(priceStr))) {
-          price = parseFloat(priceStr);
+          priceExcludingVAT = parseFloat(priceStr);
         }
       }
       
@@ -563,6 +609,9 @@
       const vehicle = detectVehicleCategory(brand, model, size);
       const totalQty = qty1 + qty4;
       
+      // Calculate price including VAT
+      let priceIncludingVAT = getPriceWithVAT(priceExcludingVAT);
+      
       // Include ALL items, even those with zero stock
       inventory.push({
         brand: brand,
@@ -572,7 +621,8 @@
         qty1: qty1,
         qty4: qty4,
         totalQty: totalQty,
-        price: price,
+        priceExcludingVAT: priceExcludingVAT,
+        priceIncludingVAT: priceIncludingVAT,
         fullDescription: description
       });
     }
@@ -622,20 +672,12 @@
       } else {
         showMessage(`❌ Failed to load stock. Check Google Sheet publish settings.`, 'error');
         if (container) {
-          container.innerHTML = `<div class="no-data"><h3>📦 Unable to load stock</h3><p>Make sure your Google Sheet is published as CSV with columns: Item Description, Size, Qty 1, Qty 4, Price (optional)</p></div>`;
+          container.innerHTML = `<div class="no-data"><h3>📦 Unable to load stock</h3><p>Make sure your Google Sheet is published as CSV with columns: Item Description, Size, Qty 1, Qty 4, Price (excluding VAT)</p></div>`;
         }
       }
     } finally {
       isLoading = false;
     }
-  }
-
-  // Format price for display
-  function formatPrice(price) {
-    if (price && price > 0) {
-      return `P ${price.toFixed(2)}`;
-    }
-    return '—';
   }
 
   // Render stock table
@@ -687,7 +729,8 @@
             <th>Qty1</th>
             <th>Qty4</th>
             <th>Total Stock</th>
-            <th>Price (BWP)</th>
+            <th>Price (Excl. VAT)</th>
+            <th>Price (Incl. VAT)</th>
           </tr>
         </thead>
         <tbody>
@@ -697,6 +740,10 @@
             const stockDisplay = isOutOfStock 
               ? `<strong style="color: #ef4444;">${tyre.totalQty} <span class="out-of-stock-badge">OUT OF STOCK</span></strong>` 
               : `<strong style="color: #10b981;">${tyre.totalQty}</strong>`;
+            
+            const priceExcludingDisplay = formatPrice(tyre.priceExcludingVAT);
+            const priceIncludingDisplay = formatPrice(tyre.priceIncludingVAT);
+            
             return `
               <tr class="${rowClass}">
                 <td><strong>${escapeHtml(tyre.brand)}</strong></td>
@@ -706,7 +753,8 @@
                 <td>${tyre.qty1}</td>
                 <td>${tyre.qty4}</td>
                 <td>${stockDisplay}</td>
-                <td class="price-display">${formatPrice(tyre.price)}</td>
+                <td class="price-excluding">${priceExcludingDisplay}</td>
+                <td class="price-including">${priceIncludingDisplay}</td>
               </tr>
             `;
           }).join('')}
