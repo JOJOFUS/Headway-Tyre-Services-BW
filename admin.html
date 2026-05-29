@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Portal - Headway Tyre Services</title>
 
-  <!-- ===== FAVICON: TYRE ICON ===== -->
+  <!-- FAVICON: TYRE ICON -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23111111' stroke='%23f78e06' stroke-width='4' /%3E%3Ccircle cx='50' cy='50' r='18' fill='%23333' stroke='%23f78e06' stroke-width='2.5' /%3E%3Cpath fill='none' stroke='%23f78e06' stroke-width='3' d='M50 5 L50 14 M50 86 L50 95 M5 50 L14 50 M86 50 L95 50 M20.5 20.5 L27 27 M73 73 L79.5 79.5 M79.5 20.5 L73 27 M27 73 L20.5 79.5' /%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f78e06' /%3E%3C/svg%3E">
-  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAzUlEQVRYR+2WMQ6AIAxFOYFxY3F3cTdxc3VxMTRWbQOF0ILlL/ElLxD+T1/SGiGEkC2KZixjGQsUCuuXfwNQwCiwNAIzMAEjMAEj7AAdMxAWYAZGYAWclYAUoAeWwAaYATMwAyMwFmAFRqCFB9w/HkAJD9w/DiADnPAAZ2AERmCNB9x/BkAJD9w/M+AOuH9mwB0wAyMwAmfggQfQwAN3gA04AyMwA5xBRhMjMAIjMAMjMAJH4IECL9cCXH+zAHpgBGZgBEZgBp6fANm/TAsC0CbAAAAAAElFTkSuQmCC">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23111111' stroke='%23f78e06' stroke-width='4' /%3E%3Ccircle cx='50' cy='50' r='18' fill='%23333' stroke='%23f78e06' stroke-width='2.5' /%3E%3Cpath fill='none' stroke='%23f78e06' stroke-width='3' d='M50 5 L50 14 M50 86 L50 95 M5 50 L14 50 M86 50 L95 50 M20.5 20.5 L27 27 M73 73 L79.5 79.5 M79.5 20.5 L73 27 M27 73 L20.5 79.5' /%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f78e06' /%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +39,7 @@
     }
 
     .admin-container {
-      max-width: 1000px;
+      max-width: 1400px;
     }
 
     h1 {
@@ -117,94 +115,6 @@
       text-align: center;
     }
 
-    .csv-upload-area {
-      border: 3px dashed #ff6a00;
-      border-radius: 15px;
-      padding: 30px;
-      text-align: center;
-      margin-bottom: 20px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .csv-upload-area:hover {
-      background: #fff5e6;
-    }
-
-    .csv-format {
-      background: #f5f5f5;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
-      font-size: 0.9rem;
-    }
-
-    .csv-format code {
-      background: #e0e0e0;
-      padding: 2px 6px;
-      border-radius: 5px;
-      display: inline-block;
-      margin: 2px 0;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .button-group button {
-      flex: 1;
-      min-width: 150px;
-    }
-
-    .reset-btn {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-    }
-
-    .reset-btn:hover {
-      background: linear-gradient(135deg, #c0392b, #a93226);
-      box-shadow: 0 5px 15px rgba(231,76,60,0.3);
-    }
-
-    .reset-confirm {
-      background: #fee;
-      border: 1px solid #e74c3c;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    .reset-confirm.show {
-      display: block;
-    }
-
-    .reset-confirm p {
-      margin-bottom: 15px;
-      color: #c0392b;
-      font-weight: 600;
-    }
-
-    .reset-confirm-buttons {
-      display: flex;
-      gap: 10px;
-    }
-
-    .reset-confirm-buttons button {
-      padding: 8px 20px;
-      width: auto;
-    }
-
-    .confirm-yes {
-      background: #e74c3c;
-    }
-
-    .confirm-no {
-      background: #95a5a6;
-    }
-
     .logout-btn {
       background: #666;
       margin-top: 20px;
@@ -224,16 +134,105 @@
       text-decoration: none;
     }
 
-    .stats-box {
+    /* Stock Table Styles */
+    .stock-table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    .stock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .stock-table th {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+      padding: 14px 12px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    .stock-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .stock-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .stock-table tr.out-of-stock {
+      background: #fef2f2;
+      opacity: 0.85;
+    }
+
+    .stock-table tr.out-of-stock:hover {
+      background: #fee2e2;
+    }
+
+    .price-display {
+      font-weight: 700;
+      color: #ff6a00;
+      font-size: 1rem;
+    }
+
+    .out-of-stock-badge {
+      display: inline-block;
+      background: #ef4444;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 250px;
+      padding: 14px 18px;
+      border-radius: 48px;
+      border: 1px solid #cfdde6;
+      font-size: 0.9rem;
+    }
+
+    .search-bar select {
+      width: auto;
+      min-width: 180px;
+      padding: 14px 18px;
+      border-radius: 48px;
+    }
+
+    .refresh-stock-btn {
+      background: linear-gradient(135deg, #ff6a00, #ff9500);
+      width: auto;
+      padding: 12px 24px;
+    }
+
+    .stats-bar {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 25px;
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 20px;
     }
 
     .stat {
@@ -250,13 +249,73 @@
       opacity: 0.9;
     }
 
+    .loading-spinner {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #ff6a00;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 60px;
+      color: #666;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .category-Car { background: #dbeafe; color: #1e40af; }
+    .category-SUV { background: #dcfce7; color: #166534; }
+    .category-Truck { background: #fed7aa; color: #9a3412; }
+    .category-Agricultural { background: #fef3c7; color: #92400e; }
+    .category-Machine { background: #e0e7ff; color: #3730a3; }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-stock-btn {
+      background: #f1f5f9;
+      color: #1e293b;
+      width: auto;
+      padding: 8px 20px;
+      font-size: 0.8rem;
+    }
+
+    .filter-stock-btn.active {
+      background: linear-gradient(135deg, #ff6a00, #ff9500);
+      color: white;
+    }
+
     @media (max-width: 768px) {
       .login-container, .admin-container {
         padding: 25px;
       }
-      
-      .button-group {
-        flex-direction: column;
+      .stock-table th, .stock-table td {
+        padding: 8px;
+        font-size: 0.75rem;
       }
     }
   </style>
@@ -265,7 +324,7 @@
 
 <div id="loginSection" class="login-container">
   <h1>🔐 Admin Access</h1>
-  <p class="subtitle">Enter your credentials to manage tyre inventory</p>
+  <p class="subtitle">Enter your credentials to view tyre inventory with prices</p>
   
   <div id="loginError" class="error-message" style="display: none;"></div>
   
@@ -287,43 +346,63 @@
 </div>
 
 <div id="adminSection" class="admin-container" style="display: none;">
-  <h1>📊 Admin Dashboard</h1>
+  <h1>📊 Stock & Price Overview</h1>
   <p class="subtitle" id="welcomeUser"></p>
   
   <div id="adminMessage"></div>
   
-  <div class="button-group">
-    <button onclick="showResetConfirm()" class="reset-btn">🔄 Reset Stock</button>
-  </div>
-  
-  <div id="resetConfirm" class="reset-confirm">
-    <p>⚠️ WARNING: This will clear ALL stock data. Are you sure?</p>
-    <div class="reset-confirm-buttons">
-      <button onclick="confirmReset()" class="confirm-yes">Yes, Clear Stock</button>
-      <button onclick="hideResetConfirm()" class="confirm-no">Cancel</button>
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat">
+      <div class="stat-value" id="totalProducts">0</div>
+      <div class="stat-label">Total Products</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="inStockCount">0</div>
+      <div class="stat-label">In Stock</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="outOfStockCount">0</div>
+      <div class="stat-label">Out of Stock</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="totalStock">0</div>
+      <div class="stat-label">Total Units</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="lastSync">-</div>
+      <div class="stat-label">Last Sync</div>
     </div>
   </div>
   
-  <div class="csv-upload-area" onclick="document.getElementById('csvFile').click()">
-    <p>📁 Click to upload CSV file</p>
-    <p style="font-size: 0.8rem; margin-top: 10px;">or drag and drop</p>
-    <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleCSVUpload(this.files[0])">
+  <!-- Stock Status Filter Buttons -->
+  <div class="filter-buttons">
+    <button class="filter-stock-btn active" data-stock-filter="all">📊 All Tyres</button>
+    <button class="filter-stock-btn" data-stock-filter="in-stock">✅ In Stock Only</button>
+    <button class="filter-stock-btn" data-stock-filter="out-of-stock">❌ Out of Stock Only</button>
   </div>
   
-  <div class="csv-format">
-    <strong>📋 CSV Format Accepted:</strong><br>
-    Your CSV should have these columns:<br>
-    <code>Item Description, Size, Qty 1, Qty 4</code><br><br>
-    <strong>How it works:</strong><br>
-    • Extracts brand from the beginning of Item Description<br>
-    • Creates/updates tyres based on <strong>brand + size</strong><br>
-    • Updates <strong>qty1</strong> and <strong>qty4</strong> with your CSV values<br>
-    • Zero quantities (0) will be saved but hidden from stock page
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="stockSearch" placeholder="🔍 Search by brand, model, or size...">
+    <select id="categoryFilter">
+      <option value="all">All Categories</option>
+      <option value="Car">🚘 Car</option>
+      <option value="SUV">🚙 SUV</option>
+      <option value="Truck">🚛 Truck</option>
+      <option value="Agricultural">🚜 Agricultural</option>
+      <option value="Machine">🏗️ Industrial</option>
+    </select>
+    <button class="refresh-stock-btn" id="refreshStockBtn">🔄 Sync from Google Sheet</button>
   </div>
   
-  <button onclick="downloadSampleCSV()" style="background: #2196F3; margin-bottom: 20px;">📥 Download Sample CSV Template</button>
-  
-  <div id="statsContainer" class="stats-box"></div>
+  <!-- Stock Table -->
+  <div class="stock-table-container" id="stockTableContainer">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading stock from Google Sheets...</p>
+    </div>
+  </div>
   
   <button onclick="logout()" class="logout-btn">🚪 Logout</button>
   <div class="back-link">
@@ -332,11 +411,17 @@
 </div>
 
 <script>
+  // Google Sheet CSV URL (same as stock.html)
+  // Expected columns: Item Description, Size, Qty 1, Qty 4, Price (optional)
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
+  
   let currentInventory = [];
+  let isLoading = false;
+  let currentStockFilter = 'all'; // 'all', 'in-stock', 'out-of-stock'
 
   // Extract brand from description
   function extractBrand(description) {
-    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER)/i;
+    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
     const match = description.match(brandPattern);
     if (match) {
       return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
@@ -344,66 +429,82 @@
     return null;
   }
 
-  // Detect vehicle type
-  function detectVehicle(size, model) {
+  // Detect vehicle category
+  function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
     
     if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5') || sizeUpper.includes('R17.5') ||
-        sizeUpper.includes('R20') || modelUpper.includes('TRUCK') || modelUpper.includes('BUS') ||
-        modelUpper.includes('REGIONAL') || modelUpper.includes('LONGHAUL')) {
+        sizeUpper.includes('R20') && (parseInt(sizeUpper) >= 8 || modelUpper.includes('TRUCK')) ||
+        modelUpper.includes('TRUCK') || modelUpper.includes('BUS') || modelUpper.includes('REGIONAL') ||
+        modelUpper.includes('LONGHAUL')) {
       return "Truck";
     }
+    
     if (modelUpper.includes('TRACTOR') || modelUpper.includes('AGRI') || sizeUpper.includes('R24') || 
         sizeUpper.includes('R28') || sizeUpper.includes('R34')) {
       return "Agricultural";
     }
+    
     if (modelUpper.includes('LOADER') || modelUpper.includes('INDUSTRIAL') || modelUpper.includes('L5') ||
         sizeUpper.includes('L5') || sizeUpper.includes('E3') || modelUpper.includes('JCB')) {
       return "Machine";
     }
-    if (modelUpper.includes('A/T') || modelUpper.includes('M/T') || modelUpper.includes('TERRAMAX') ||
-        (sizeUpper.includes('LT') && !sizeUpper.includes('C'))) {
+    
+    if (modelUpper.includes('SUV') || modelUpper.includes('A/T') || modelUpper.includes('M/T') || 
+        modelUpper.includes('TERRAMAX') || (sizeUpper.includes('LT') && !sizeUpper.includes('C'))) {
       return "SUV";
     }
+    
     return "Car";
   }
 
-  // Check if item is a tyre (skip non-tyre items)
+  // Check if item is a tyre
   function isTyreItem(description, size) {
     const skipKeywords = [
       "FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", "LABOUR",
       "VULCANIZING", "CEMENT", "SOLUTION", "BUFFING", "SPREADER", "VALVE", "PLUG",
       "CABLE", "RIM", "BATTERY", "TUBE", "FLAP", "STONE", "WHEEL", "CLEANER", 
       "SCRAPER", "DRILL", "STITCHER", "EXTENSION", "CORE", "GAITER", "CUSHION",
-      "NYLON", "INSPECTION", "MACHINE", "VULCANIZER", "ADHESIVE", "WEIGHTS",
-      "HOT PATCH", "EMERALD", "CAMEL", "TAITEC", "KAMON", "BRAID", "CURL", 
-      "DREADLOCK", "YAKI", "SILKY"
+      "NYLON", "INSPECTION", "MACHINE", "VULCANIZER", "ADHESIVE", "WEIGHTS"
     ];
     const upperDesc = description.toUpperCase();
     for (const kw of skipKeywords) {
       if (upperDesc.includes(kw)) return false;
     }
-    if (!size || size === "VARIOUS" || size === "ASSORTED" || size === "610" || 
-        size === "611" || size === "612" || size === "615" || size === "616S" ||
-        size === "616SD" || size === "619" || size === "621" || size === "622") {
+    if (!size || size === "VARIOUS" || size === "ASSORTED") {
       return false;
     }
     return true;
   }
 
-  function parseCSVAndUpdate(csvContent) {
-    const lines = csvContent.split(/\r?\n/);
-    let startRow = 0;
+  // Parse CSV and build inventory with price (include ALL rows, even zero stock)
+  function parseCSVToInventory(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    if (lines.length === 0) return [];
     
-    // Check for headers
-    if (lines[0] && (lines[0].toLowerCase().includes('item description') || lines[0].toLowerCase().includes('description'))) {
-      startRow = 1;
+    let startRow = 0;
+    let priceColumnIndex = -1;
+    
+    // Check header row for price column
+    for (let i = 0; i < Math.min(lines.length, 10); i++) {
+      const line = lines[i].toLowerCase();
+      if ((line.includes('item') && line.includes('description')) || 
+          (line.includes('size') && line.includes('qty'))) {
+        startRow = i + 1;
+        // Check if this header line has a price column
+        const headerParts = lines[i].split(',');
+        for (let p = 0; p < headerParts.length; p++) {
+          if (headerParts[p].toLowerCase().includes('price')) {
+            priceColumnIndex = p;
+            break;
+          }
+        }
+        break;
+      }
     }
     
-    const newInventory = [];
-    let updatedCount = 0;
-    let errorCount = 0;
+    const inventory = [];
     
     for (let i = startRow; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -426,174 +527,239 @@
       }
       columns.push(current);
       
-      if (columns.length < 3) {
-        errorCount++;
-        continue;
-      }
+      if (columns.length < 3) continue;
       
       let description = (columns[0] || '').replace(/^["']|["']$/g, '').trim();
       let size = (columns[1] || '').replace(/^["']|["']$/g, '').trim();
       let qty1 = parseInt(columns[2], 10) || 0;
       let qty4 = columns.length > 3 ? (parseInt(columns[3], 10) || 0) : 0;
       
-      if (!description || !size) {
-        errorCount++;
-        continue;
+      // Extract price if available (from column 4 or 5 depending on structure)
+      let price = null;
+      if (priceColumnIndex >= 0 && columns.length > priceColumnIndex) {
+        const priceStr = columns[priceColumnIndex].replace(/^["']|["']$/g, '').trim();
+        if (priceStr && !isNaN(parseFloat(priceStr))) {
+          price = parseFloat(priceStr);
+        }
+      } else if (columns.length > 4) {
+        // Try column 4 as price
+        const priceStr = columns[4].replace(/^["']|["']$/g, '').trim();
+        if (priceStr && !isNaN(parseFloat(priceStr))) {
+          price = parseFloat(priceStr);
+        }
       }
       
-      // Skip non-tyre items
-      if (!isTyreItem(description, size)) {
-        continue;
-      }
+      if (!description || !size) continue;
+      if (!isTyreItem(description, size)) continue;
       
-      // Extract brand
       let brand = extractBrand(description);
       if (!brand) continue;
       
-      // Clean model name (remove brand)
       let model = description.replace(new RegExp(brand, 'i'), '').trim();
-      if (!model) model = description.substring(0, 80);
-      if (model.length > 80) model = model.substring(0, 77) + "...";
+      if (!model) model = description.substring(0, 60);
+      if (model.length > 60) model = model.substring(0, 57) + "...";
       
-      // Fix malformed sizes
       size = size.replace(/^0[5-9]-/, '');
+      const vehicle = detectVehicleCategory(brand, model, size);
+      const totalQty = qty1 + qty4;
       
-      const vehicle = detectVehicle(size, model);
-      
-      // Check if this brand+size already exists
-      const existingIndex = newInventory.findIndex(t => 
-        t.brand === brand && t.size === size
-      );
-      
-      if (existingIndex >= 0) {
-        // Update existing
-        newInventory[existingIndex].qty1 = qty1;
-        newInventory[existingIndex].qty4 = qty4;
-        updatedCount++;
-      } else {
-        // Add new
-        newInventory.push({
-          brand: brand,
-          model: model,
-          size: size,
-          vehicle: vehicle,
-          qty1: qty1,
-          qty4: qty4
-        });
-        updatedCount++;
-      }
+      // Include ALL items, even those with zero stock
+      inventory.push({
+        brand: brand,
+        model: model,
+        size: size,
+        vehicle: vehicle,
+        qty1: qty1,
+        qty4: qty4,
+        totalQty: totalQty,
+        price: price,
+        fullDescription: description
+      });
     }
     
-    currentInventory = newInventory;
-    
-    // Save to localStorage
-    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
-    
-    // Broadcast to other tabs
-    const event = new StorageEvent('storage', {
-      key: 'headway_tyre_inventory',
-      newValue: JSON.stringify(currentInventory),
-      storageArea: localStorage
-    });
-    window.dispatchEvent(event);
-    
-    // Notify stock page if open in same window
-    if (window.opener && !window.opener.closed) {
-      if (window.opener.updateTyreInventory) {
-        window.opener.updateTyreInventory(currentInventory);
-      }
-    }
-    
-    updateStats();
-    showMessage(`✅ CSV Import Complete!<br>Loaded: ${updatedCount} tyres | Skipped: ${errorCount}`, 'success');
-    document.getElementById('csvFile').value = '';
+    return inventory;
   }
 
-  function handleCSVUpload(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      parseCSVAndUpdate(e.target.result);
-    };
-    reader.readAsText(file, 'UTF-8');
+  // Fetch from Google Sheet
+  async function fetchFromGoogleSheet() {
+    if (isLoading) return;
+    isLoading = true;
+    
+    const container = document.getElementById('stockTableContainer');
+    if (container) {
+      container.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching latest stock from Google Sheets...</p></div>`;
+    }
+    
+    try {
+      const response = await fetch(GOOGLE_SHEET_CSV_URL);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const csvText = await response.text();
+      const parsedInventory = parseCSVToInventory(csvText);
+      
+      if (parsedInventory.length > 0) {
+        currentInventory = parsedInventory;
+        localStorage.setItem('headway_tyre_inventory_admin', JSON.stringify(currentInventory));
+        localStorage.setItem('headway_last_sync', Date.now().toString());
+        renderStockTable();
+        updateStats();
+        showMessage(`✅ Stock updated! ${currentInventory.length} tyre models loaded.`, 'success');
+      } else {
+        throw new Error("No tyre data found");
+      }
+    } catch (error) {
+      console.error('Error fetching:', error);
+      const stored = localStorage.getItem('headway_tyre_inventory_admin');
+      if (stored) {
+        try {
+          currentInventory = JSON.parse(stored);
+          renderStockTable();
+          updateStats();
+          showMessage(`⚠️ Using cached data: ${error.message}`, 'error');
+        } catch(e) {
+          showMessage(`❌ Failed to load stock: ${error.message}`, 'error');
+        }
+      } else {
+        showMessage(`❌ Failed to load stock. Check Google Sheet publish settings.`, 'error');
+        if (container) {
+          container.innerHTML = `<div class="no-data"><h3>📦 Unable to load stock</h3><p>Make sure your Google Sheet is published as CSV with columns: Item Description, Size, Qty 1, Qty 4, Price (optional)</p></div>`;
+        }
+      }
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Format price for display
+  function formatPrice(price) {
+    if (price && price > 0) {
+      return `P ${price.toFixed(2)}`;
+    }
+    return '—';
+  }
+
+  // Render stock table
+  function renderStockTable() {
+    const container = document.getElementById('stockTableContainer');
+    if (!container) return;
+    
+    const searchTerm = document.getElementById('stockSearch')?.value.toLowerCase() || '';
+    const categoryFilter = document.getElementById('categoryFilter')?.value || 'all';
+    
+    let filtered = [...currentInventory];
+    
+    // Apply stock status filter (includes out-of-stock items)
+    if (currentStockFilter === 'in-stock') {
+      filtered = filtered.filter(t => t.totalQty > 0);
+    } else if (currentStockFilter === 'out-of-stock') {
+      filtered = filtered.filter(t => t.totalQty === 0);
+    }
+    // 'all' shows everything including zero stock
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(t => 
+        t.brand.toLowerCase().includes(searchTerm) ||
+        t.model.toLowerCase().includes(searchTerm) ||
+        t.size.toLowerCase().includes(searchTerm) ||
+        t.fullDescription?.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(t => t.vehicle === categoryFilter);
+    }
+    
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="no-data"><h3>🔍 No tyres found</h3><p>Try adjusting your search or category filter.</p></div>`;
+      return;
+    }
+    
+    const tableHtml = `
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Size</th>
+            <th>Category</th>
+            <th>Qty1</th>
+            <th>Qty4</th>
+            <th>Total Stock</th>
+            <th>Price (BWP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(tyre => {
+            const isOutOfStock = tyre.totalQty === 0;
+            const rowClass = isOutOfStock ? 'out-of-stock' : '';
+            const stockDisplay = isOutOfStock 
+              ? `<strong style="color: #ef4444;">${tyre.totalQty} <span class="out-of-stock-badge">OUT OF STOCK</span></strong>` 
+              : `<strong style="color: #10b981;">${tyre.totalQty}</strong>`;
+            return `
+              <tr class="${rowClass}">
+                <td><strong>${escapeHtml(tyre.brand)}</strong></td>
+                <td>${escapeHtml(tyre.model)}</td>
+                <td><code>${escapeHtml(tyre.size)}</code></td>
+                <td><span class="category-badge category-${tyre.vehicle}">${tyre.vehicle}</span></td>
+                <td>${tyre.qty1}</td>
+                <td>${tyre.qty4}</td>
+                <td>${stockDisplay}</td>
+                <td class="price-display">${formatPrice(tyre.price)}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+    
+    container.innerHTML = tableHtml;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
   }
 
   function updateStats() {
-    const statsDiv = document.getElementById('statsContainer');
-    if (!statsDiv) return;
-    
-    let totalQty1 = 0;
-    let totalQty4 = 0;
-    let totalProducts = currentInventory.length;
-    let inStockCount = 0;
+    const totalProducts = currentInventory.length;
+    let inStock = 0;
+    let outOfStock = 0;
+    let totalUnits = 0;
     
     currentInventory.forEach(tyre => {
-      totalQty1 += tyre.qty1 || 0;
-      totalQty4 += tyre.qty4 || 0;
-      if ((tyre.qty1 || 0) + (tyre.qty4 || 0) > 0) inStockCount++;
-    });
-    
-    statsDiv.innerHTML = `
-      <div class="stat">
-        <div class="stat-value">${totalProducts}</div>
-        <div class="stat-label">Total Products</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value" style="color: #4caf50;">${totalQty1}</div>
-        <div class="stat-label">Total Qty1</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value" style="color: #2196f3;">${totalQty4}</div>
-        <div class="stat-label">Total Qty4</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">${inStockCount}</div>
-        <div class="stat-label">In Stock Items</div>
-      </div>
-    `;
-  }
-
-  function loadCurrentInventory() {
-    const stored = localStorage.getItem('headway_tyre_inventory');
-    if (stored) {
-      try {
-        currentInventory = JSON.parse(stored);
-      } catch(e) {
-        currentInventory = [];
+      totalUnits += tyre.totalQty;
+      if (tyre.totalQty > 0) {
+        inStock++;
+      } else {
+        outOfStock++;
       }
-    } else {
-      currentInventory = [];
-    }
-    updateStats();
-  }
-
-  function confirmReset() {
-    currentInventory = [];
-    localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
-    
-    // Broadcast
-    const event = new StorageEvent('storage', {
-      key: 'headway_tyre_inventory',
-      newValue: JSON.stringify(currentInventory),
-      storageArea: localStorage
     });
-    window.dispatchEvent(event);
     
-    if (window.opener && !window.opener.closed && window.opener.updateTyreInventory) {
-      window.opener.updateTyreInventory(currentInventory);
+    const totalProductsEl = document.getElementById('totalProducts');
+    const inStockCountEl = document.getElementById('inStockCount');
+    const outOfStockCountEl = document.getElementById('outOfStockCount');
+    const totalStockEl = document.getElementById('totalStock');
+    const lastSyncEl = document.getElementById('lastSync');
+    
+    if (totalProductsEl) totalProductsEl.textContent = totalProducts;
+    if (inStockCountEl) inStockCountEl.textContent = inStock;
+    if (outOfStockCountEl) outOfStockCountEl.textContent = outOfStock;
+    if (totalStockEl) totalStockEl.textContent = totalUnits;
+    
+    const lastSync = localStorage.getItem('headway_last_sync');
+    if (lastSyncEl && lastSync) {
+      const date = new Date(parseInt(lastSync));
+      lastSyncEl.textContent = date.toLocaleTimeString();
+    } else if (lastSyncEl) {
+      lastSyncEl.textContent = 'Not synced';
     }
-    
-    updateStats();
-    showMessage('✅ Stock has been cleared!', 'success');
-    hideResetConfirm();
-  }
-
-  function showResetConfirm() {
-    document.getElementById('resetConfirm').classList.add('show');
-  }
-  
-  function hideResetConfirm() {
-    document.getElementById('resetConfirm').classList.remove('show');
   }
 
   function showMessage(msg, type) {
@@ -601,36 +767,44 @@
     msgDiv.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${msg}</div>`;
     setTimeout(() => {
       msgDiv.innerHTML = '';
-    }, 5000);
+    }, 4000);
   }
 
-  function downloadSampleCSV() {
-    const sampleData = [
-      'Item Description,Size,Qty 1,Qty 4',
-      'SAILUN Atrezzo Elite 205/55R16,205/55R16,15,20',
-      'BLACKHAWK Hiscend-H HV61 235/55R18,235/55R18,5,8',
-      'HEADWAY Road Champ 175/70R13,175/70R13,30,12'
-    ];
-    const blob = new Blob(["\uFEFF" + sampleData.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tyre_inventory_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  // Load cached inventory on init
+  function loadCachedInventory() {
+    const stored = localStorage.getItem('headway_tyre_inventory_admin');
+    if (stored) {
+      try {
+        currentInventory = JSON.parse(stored);
+        renderStockTable();
+        updateStats();
+      } catch(e) {}
+    }
   }
 
-  function logout() {
-    document.getElementById('loginSection').style.display = 'block';
-    document.getElementById('adminSection').style.display = 'none';
-    document.getElementById('adminUsername').value = '';
-    document.getElementById('adminPassword').value = '';
-    document.getElementById('loginError').style.display = 'none';
-    hideResetConfirm();
+  // Setup event listeners
+  function setupEventListeners() {
+    const searchInput = document.getElementById('stockSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const refreshBtn = document.getElementById('refreshStockBtn');
+    
+    if (searchInput) searchInput.addEventListener('input', () => renderStockTable());
+    if (categoryFilter) categoryFilter.addEventListener('change', () => renderStockTable());
+    if (refreshBtn) refreshBtn.addEventListener('click', () => fetchFromGoogleSheet());
+    
+    // Stock filter buttons
+    const filterBtns = document.querySelectorAll('.filter-stock-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStockFilter = btn.getAttribute('data-stock-filter');
+        renderStockTable();
+      });
+    });
   }
 
+  // Authentication
   function checkPassword() {
     const users = {
       'Jojo': 'jojo123',
@@ -644,8 +818,11 @@
     if (users[username] && users[username] === password) {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('adminSection').style.display = 'block';
-      document.getElementById('welcomeUser').innerHTML = `Welcome, ${username}! 👋`;
-      loadCurrentInventory();
+      document.getElementById('welcomeUser').innerHTML = `Welcome, ${username}! 👋 View complete stock and price list below.`;
+      
+      loadCachedInventory();
+      setupEventListeners();
+      fetchFromGoogleSheet(); // Fetch fresh data
     } else {
       loginError.style.display = 'block';
       loginError.textContent = '❌ Incorrect username or password. Access denied.';
@@ -653,27 +830,23 @@
     }
   }
 
-  // Drag and drop
-  const dropArea = document.querySelector('.csv-upload-area');
-  if (dropArea) {
-    dropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropArea.style.background = '#fff5e6';
-    });
-    dropArea.addEventListener('dragleave', () => {
-      dropArea.style.background = '';
-    });
-    dropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropArea.style.background = '';
-      const file = e.dataTransfer.files[0];
-      if (file && file.name.endsWith('.csv')) {
-        handleCSVUpload(file);
-      } else {
-        showMessage('Please upload a CSV file', 'error');
-      }
-    });
+  function logout() {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('adminSection').style.display = 'none';
+    document.getElementById('adminUsername').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
   }
+
+  // Enter key login
+  document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('adminPassword');
+    if (passwordInput) {
+      passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkPassword();
+      });
+    }
+  });
 </script>
 
 </body>
