@@ -103,7 +103,8 @@
 
 <script>
   // ============================================================
-  // GOOGLE SHEETS CSV INTEGRATION - FIXED VERSION
+  // GOOGLE SHEETS CSV INTEGRATION - KEEP ALL ROWS SEPARATE
+  // Uses full description as unique identifier
   // ============================================================
   
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
@@ -111,7 +112,7 @@
   let currentInventory = [];
   let isLoading = false;
 
-  // Helper to detect vehicle category (same as before)
+  // Helper to detect vehicle category
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
@@ -211,7 +212,8 @@
       const searchMatch = searchText === '' ||
         t.brand.toLowerCase().includes(searchLower) ||
         t.model.toLowerCase().includes(searchLower) ||
-        t.size.toLowerCase().includes(searchLower);
+        t.size.toLowerCase().includes(searchLower) ||
+        t.fullDescription.toLowerCase().includes(searchLower);
       return vehicleMatch && searchMatch;
     });
   }
@@ -345,12 +347,13 @@
     }
   }
 
-  // ⭐⭐⭐ FIXED: No longer adds quantities - uses latest record instead ⭐⭐⭐
+  // ⭐⭐⭐ FIXED: Keep EVERY row as a separate product ⭐⭐⭐
+  // Uses full description as unique identifier to preserve different models
   function parseCSVToInventory(csvText) {
     const lines = csvText.split(/\r?\n/);
     if (lines.length === 0) return [];
     
-    // Improved header detection - look for first non-empty row with expected columns
+    // Improved header detection
     let startRow = 0;
     let foundHeader = false;
     
@@ -365,13 +368,13 @@
       }
     }
     
-    // If no header found, assume first data row is row 1
     if (!foundHeader) {
       startRow = 0;
       console.log("No header detected, starting from row 0");
     }
     
-    // Use Map for O(1) lookups by unique key (brand|size)
+    // Use Map with FULL DESCRIPTION as unique key (not brand+size)
+    // This preserves different models with same brand/size
     const tyreMap = new Map();
     let processedCount = 0;
     let skippedCount = 0;
@@ -425,7 +428,7 @@
         continue;
       }
       
-      // Clean model name (remove brand)
+      // Clean model name (remove brand from description)
       let model = description.replace(new RegExp(brand, 'i'), '').trim();
       if (!model) model = description.substring(0, 80);
       if (model.length > 80) model = model.substring(0, 77) + "...";
@@ -435,18 +438,19 @@
       
       const vehicle = detectVehicleCategory(brand, model, size);
       
-      // Create unique key
-      const key = `${brand}|${size}`;
+      // ⭐ KEY CHANGE: Use FULL DESCRIPTION as unique key
+      // This ensures different models with same brand+size appear separately
+      const key = description; // Full description is the unique identifier
       
-      // ⭐ FIXED: REPLACE instead of ADD for duplicates
-      // Last occurrence in CSV wins (most recent data)
+      // Store each row separately - no merging
       tyreMap.set(key, {
         brand: brand,
         model: model,
         size: size,
         vehicle: vehicle,
         qty1: qty1,
-        qty4: qty4
+        qty4: qty4,
+        fullDescription: description  // Store for search
       });
       processedCount++;
     }
@@ -454,7 +458,9 @@
     // Convert Map back to array
     const inventory = Array.from(tyreMap.values());
     
-    console.log(`Parsed CSV: ${processedCount} total rows, ${skippedCount} skipped, ${inventory.length} unique tyres`);
+    console.log(`Parsed CSV: ${processedCount} total rows, ${skippedCount} skipped, ${inventory.length} unique products`);
+    console.log(`Example: First 3 products:`, inventory.slice(0, 3).map(p => `${p.brand} - ${p.model} (${p.size})`));
+    
     return inventory;
   }
 
