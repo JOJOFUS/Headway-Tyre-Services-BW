@@ -21,7 +21,14 @@
     .nav-links { display: flex; flex-wrap: wrap; gap: 24px; list-style: none; }
     .nav-links a { color: #ffffff; text-decoration: none; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: #f78e06; }
-    .filters-panel { background: white; padding: 1.5rem 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border-bottom: 1px solid #e9edf2; position: sticky; top: 70px; z-index: 10; }
+    
+    /* Filters panel - normal flow, not sticky */
+    .filters-panel { 
+      background: white; 
+      padding: 1.5rem 1.5rem; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+      border-bottom: 1px solid #e9edf2; 
+    }
     .filter-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; max-width: 1280px; margin: 0 auto 20px auto; }
     .filter-row input, .filter-row select { padding: 12px 18px; border-radius: 48px; border: 1px solid #cfdde6; background: white; font-size: 0.85rem; min-width: 210px; font-weight: 500; transition: all 0.2s; }
     .filter-row input:focus, .filter-row select:focus { border-color: #f97316; outline: none; box-shadow: 0 0 0 2px rgba(249,115,22,0.2); }
@@ -63,13 +70,12 @@
 
 <div class="unified-header">
   <div class="container">
-    <div class="logo">HEADWAY <span>TYRES</span></div>
+    <div class="logo">HEADWAY TYRE SERVICES</div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="stock.html">Stock Inventory</a></li>
       <li><a href="index.html#tyre-guide">Tyre Guide</a></li>
       <li><a href="index.html#services">Services</a></li>
-      <li><a href="admin.html">Admin</a></li>
     </ul>
   </div>
 </div>
@@ -98,7 +104,7 @@
 <div class="stock-grid" id="stockGridContainer"></div>
 
 <footer>
-  <p>© 2025 Headway Tyres Services | Quality & Safety First | Premium Tyres & Expert Service</p>
+  <p>© 2025 Headway Tyre Services | Quality & Safety First | Premium Tyres & Expert Service</p>
 </footer>
 
 <script>
@@ -347,13 +353,10 @@
     }
   }
 
-  // ⭐⭐⭐ FIXED: Keep EVERY row as a separate product ⭐⭐⭐
-  // Uses full description as unique identifier to preserve different models
   function parseCSVToInventory(csvText) {
     const lines = csvText.split(/\r?\n/);
     if (lines.length === 0) return [];
     
-    // Improved header detection
     let startRow = 0;
     let foundHeader = false;
     
@@ -363,18 +366,14 @@
           (line.includes('size') && (line.includes('qty') || line.includes('quantity')))) {
         startRow = i + 1;
         foundHeader = true;
-        console.log(`Header found at row ${i}`);
         break;
       }
     }
     
     if (!foundHeader) {
       startRow = 0;
-      console.log("No header detected, starting from row 0");
     }
     
-    // Use Map with FULL DESCRIPTION as unique key (not brand+size)
-    // This preserves different models with same brand/size
     const tyreMap = new Map();
     let processedCount = 0;
     let skippedCount = 0;
@@ -383,7 +382,6 @@
       const line = lines[i].trim();
       if (!line) continue;
       
-      // Parse CSV line
       const columns = [];
       let current = '';
       let inQuotes = false;
@@ -415,34 +413,27 @@
         continue;
       }
       
-      // Skip non-tyre items
       if (!isTyreItem(description, size)) {
         skippedCount++;
         continue;
       }
       
-      // Extract brand
       let brand = extractBrand(description);
       if (!brand) {
         skippedCount++;
         continue;
       }
       
-      // Clean model name (remove brand from description)
       let model = description.replace(new RegExp(brand, 'i'), '').trim();
       if (!model) model = description.substring(0, 80);
       if (model.length > 80) model = model.substring(0, 77) + "...";
       
-      // Fix malformed sizes
       size = size.replace(/^0[5-9]-/, '');
       
       const vehicle = detectVehicleCategory(brand, model, size);
       
-      // ⭐ KEY CHANGE: Use FULL DESCRIPTION as unique key
-      // This ensures different models with same brand+size appear separately
-      const key = description; // Full description is the unique identifier
+      const key = description;
       
-      // Store each row separately - no merging
       tyreMap.set(key, {
         brand: brand,
         model: model,
@@ -450,17 +441,12 @@
         vehicle: vehicle,
         qty1: qty1,
         qty4: qty4,
-        fullDescription: description  // Store for search
+        fullDescription: description
       });
       processedCount++;
     }
     
-    // Convert Map back to array
     const inventory = Array.from(tyreMap.values());
-    
-    console.log(`Parsed CSV: ${processedCount} total rows, ${skippedCount} skipped, ${inventory.length} unique products`);
-    console.log(`Example: First 3 products:`, inventory.slice(0, 3).map(p => `${p.brand} - ${p.model} (${p.size})`));
-    
     return inventory;
   }
 
@@ -500,12 +486,10 @@
     });
   }
 
-  // Initialize
   document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     updateLastUpdatedDisplay();
     
-    // Try to load from localStorage first for immediate display
     const stored = localStorage.getItem('headway_tyre_inventory');
     if (stored) {
       try {
@@ -516,7 +500,6 @@
       } catch(e) {}
     }
     
-    // Then fetch fresh data from Google Sheet
     fetchFromGoogleSheet();
   });
 </script>
