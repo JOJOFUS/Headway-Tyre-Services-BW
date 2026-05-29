@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Headway Tyres • Stock Inventory</title>
   
-  <!-- ===== FAVICON: TYRE ICON ===== -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23111111' stroke='%23f78e06' stroke-width='4' /%3E%3Ccircle cx='50' cy='50' r='18' fill='%23333' stroke='%23f78e06' stroke-width='2.5' /%3E%3Cpath fill='none' stroke='%23f78e06' stroke-width='3' d='M50 5 L50 14 M50 86 L50 95 M5 50 L14 50 M86 50 L95 50 M20.5 20.5 L27 27 M73 73 L79.5 79.5 M79.5 20.5 L73 27 M27 73 L20.5 79.5' /%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f78e06' /%3E%3C/svg%3E">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,306 +12,51 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f6fc;
-      color: #0a0f1c;
-    }
-
-    .unified-header {
-      background: #111;
-      padding: 15px 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .unified-header .container {
-      width: 90%;
-      max-width: 1280px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      color: #f78e06;
-    }
-    .logo span {
-      color: #ffffff;
-    }
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      list-style: none;
-    }
-    .nav-links a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover {
-      color: #f78e06;
-    }
-
-    .filters-panel {
-      background: white;
-      padding: 1.5rem 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-      border-bottom: 1px solid #e9edf2;
-      position: sticky;
-      top: 70px;
-      z-index: 10;
-    }
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
-      max-width: 1280px;
-      margin: 0 auto 20px auto;
-    }
-    .filter-row input, .filter-row select {
-      padding: 12px 18px;
-      border-radius: 48px;
-      border: 1px solid #cfdde6;
-      background: white;
-      font-size: 0.85rem;
-      min-width: 210px;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .filter-row input:focus, .filter-row select:focus {
-      border-color: #f97316;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(249,115,22,0.2);
-    }
-    .category-group {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      max-width: 1200px;
-      margin: 10px auto 0 auto;
-    }
-    .cat-btn {
-      background: #f1f5f9;
-      border: none;
-      padding: 8px 24px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      color: #1e293b;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .cat-btn.active-cat {
-      background: #f97316;
-      color: white;
-      box-shadow: 0 6px 12px -8px rgba(249,115,22,0.5);
-    }
-    .cat-btn:hover {
-      background: #f97316;
-      color: white;
-      transform: translateY(-1px);
-    }
-
-    .refresh-btn {
-      background: #f1f5f9;
-      border: 1px solid #cfdde6;
-      padding: 8px 20px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      color: #1e293b;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .refresh-btn:hover {
-      background: #f97316;
-      color: white;
-      border-color: #f97316;
-    }
-
-    .last-updated {
-      text-align: center;
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-top: 10px;
-    }
-
-    .stock-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-      gap: 28px;
-      padding: 40px 24px;
-      max-width: 1480px;
-      margin: 0 auto;
-    }
-
-    .tyre-card {
-      background: white;
-      border-radius: 28px;
-      overflow: hidden;
-      transition: all 0.25s ease;
-      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
-      border: 1px solid #eef2f8;
-    }
-    .tyre-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12);
-      border-color: #facc1520;
-    }
-    .img-wrapper {
-      height: 210px;
-      background: linear-gradient(145deg, #eef2ff, #e2e8f0);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .tyre-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s;
-    }
-    .tyre-card:hover .tyre-img {
-      transform: scale(1.03);
-    }
-    .stock-indicator {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      padding: 6px 14px;
-      border-radius: 60px;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      backdrop-filter: blur(4px);
-      background: rgba(0,0,0,0.7);
-      color: white;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f4f6fc; color: #0a0f1c; }
+    .unified-header { background: #111; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
+    .unified-header .container { width: 90%; max-width: 1280px; margin: auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .logo { font-size: 24px; font-weight: 800; letter-spacing: 1px; color: #f78e06; }
+    .logo span { color: #ffffff; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 24px; list-style: none; }
+    .nav-links a { color: #ffffff; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: #f78e06; }
+    .filters-panel { background: white; padding: 1.5rem 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border-bottom: 1px solid #e9edf2; position: sticky; top: 70px; z-index: 10; }
+    .filter-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; max-width: 1280px; margin: 0 auto 20px auto; }
+    .filter-row input, .filter-row select { padding: 12px 18px; border-radius: 48px; border: 1px solid #cfdde6; background: white; font-size: 0.85rem; min-width: 210px; font-weight: 500; transition: all 0.2s; }
+    .filter-row input:focus, .filter-row select:focus { border-color: #f97316; outline: none; box-shadow: 0 0 0 2px rgba(249,115,22,0.2); }
+    .category-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 1200px; margin: 10px auto 0 auto; }
+    .cat-btn { background: #f1f5f9; border: none; padding: 8px 24px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; color: #1e293b; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .cat-btn.active-cat { background: #f97316; color: white; box-shadow: 0 6px 12px -8px rgba(249,115,22,0.5); }
+    .cat-btn:hover { background: #f97316; color: white; transform: translateY(-1px); }
+    .refresh-btn { background: #f1f5f9; border: 1px solid #cfdde6; padding: 8px 20px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; color: #1e293b; cursor: pointer; transition: all 0.2s; }
+    .refresh-btn:hover { background: #f97316; color: white; border-color: #f97316; }
+    .last-updated { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 10px; }
+    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 28px; padding: 40px 24px; max-width: 1480px; margin: 0 auto; }
+    .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; }
+    .tyre-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12); border-color: #facc1520; }
+    .img-wrapper { height: 210px; background: linear-gradient(145deg, #eef2ff, #e2e8f0); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .tyre-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .tyre-card:hover .tyre-img { transform: scale(1.03); }
+    .stock-indicator { position: absolute; top: 16px; right: 16px; padding: 6px 14px; border-radius: 60px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; backdrop-filter: blur(4px); background: rgba(0,0,0,0.7); color: white; }
     .in-stock-tag { background: #10b981; color: white; }
     .low-stock-tag { background: #f59e0b; color: #1e1b0e; }
-
-    .card-body {
-      padding: 1.5rem;
-    }
-    .brand-name {
-      font-weight: 800;
-      color: #f97316;
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .tyre-title {
-      font-weight: 700;
-      font-size: 1rem;
-      line-height: 1.3;
-      color: #0f172a;
-      margin-bottom: 6px;
-    }
-    .size-spec {
-      font-family: monospace;
-      background: #f1f5f9;
-      display: inline-block;
-      padding: 2px 12px;
-      border-radius: 24px;
-      font-size: 0.7rem;
-      margin: 8px 0;
-    }
-    .vehicle-cat {
-      background: #eef2ff;
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 30px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #1e40af;
-      margin-bottom: 14px;
-    }
-    .qty-stats {
-      background: #f8fafc;
-      border-radius: 20px;
-      padding: 14px;
-      margin: 14px 0 0 0;
-    }
-    .qty-row-flex {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-      margin-bottom: 10px;
-    }
+    .card-body { padding: 1.5rem; }
+    .brand-name { font-weight: 800; color: #f97316; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .tyre-title { font-weight: 700; font-size: 1rem; line-height: 1.3; color: #0f172a; margin-bottom: 6px; }
+    .size-spec { font-family: monospace; background: #f1f5f9; display: inline-block; padding: 2px 12px; border-radius: 24px; font-size: 0.7rem; margin: 8px 0; }
+    .vehicle-cat { background: #eef2ff; display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; color: #1e40af; margin-bottom: 14px; }
+    .qty-stats { background: #f8fafc; border-radius: 20px; padding: 14px; margin: 14px 0 0 0; }
+    .qty-row-flex { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 10px; }
     .qty1-label { font-weight: 700; color: #0f6e3f; background: #e0f2e9; padding: 2px 8px; border-radius: 24px; }
     .qty4-label { font-weight: 700; color: #1e3a8a; background: #e0e7ff; padding: 2px 8px; border-radius: 24px; }
-    .total-qty-line {
-      border-top: 1px solid #e2e8f0;
-      margin-top: 8px;
-      padding-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      font-weight: 800;
-      color: #f97316;
-      font-size: 0.9rem;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      grid-column: 1 / -1;
-      background: #ffffffcc;
-      border-radius: 48px;
-      margin: 20px;
-    }
-    .loading-spinner {
-      text-align: center;
-      padding: 60px;
-      grid-column: 1 / -1;
-    }
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #f97316;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    footer {
-      background: #0f172a;
-      text-align: center;
-      padding: 28px;
-      color: #94a3b8;
-      font-size: 0.8rem;
-      border-top: 1px solid #1e293b;
-    }
-    @media (max-width: 680px) {
-      .stock-grid { gap: 18px; padding: 20px 16px; }
-      .filter-row input, .filter-row select { width: 100%; }
-      .unified-header .container { flex-direction: column; text-align: center; }
-    }
+    .total-qty-line { border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: 800; color: #f97316; font-size: 0.9rem; }
+    .empty-state { text-align: center; padding: 80px 20px; grid-column: 1 / -1; background: #ffffffcc; border-radius: 48px; margin: 20px; }
+    .loading-spinner { text-align: center; padding: 60px; grid-column: 1 / -1; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f97316; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    footer { background: #0f172a; text-align: center; padding: 28px; color: #94a3b8; font-size: 0.8rem; border-top: 1px solid #1e293b; }
+    @media (max-width: 680px) { .stock-grid { gap: 18px; padding: 20px 16px; } .filter-row input, .filter-row select { width: 100%; } .unified-header .container { flex-direction: column; text-align: center; } }
   </style>
 </head>
 <body>
@@ -359,7 +103,7 @@
 
 <script>
   // ============================================================
-  // GOOGLE SHEETS CSV INTEGRATION - YOUR PUBLISHED LINK
+  // GOOGLE SHEETS CSV INTEGRATION - FIXED VERSION
   // ============================================================
   
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
@@ -367,7 +111,7 @@
   let currentInventory = [];
   let isLoading = false;
 
-  // Helper to detect vehicle category
+  // Helper to detect vehicle category (same as before)
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
@@ -403,7 +147,7 @@
 
   // Extract brand from description
   function extractBrand(description) {
-    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|GENERAL|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
+    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
     const match = description.match(brandPattern);
     if (match) {
       return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
@@ -411,7 +155,7 @@
     return null;
   }
 
-  // Check if item is a tyre (skip non-tyre items)
+  // Check if item is a tyre
   function isTyreItem(description, size) {
     const skipKeywords = [
       "FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", "LABOUR",
@@ -433,10 +177,8 @@
     return true;
   }
 
-  // Get tyre image
   function getTyreImage(size, vehicle, brand) {
     const sizeStr = String(size).toLowerCase();
-    
     if (vehicle === "Car" || sizeStr.includes('175/') || sizeStr.includes('185/') || sizeStr.includes('195/') || sizeStr.includes('205/55')) {
       return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
     }
@@ -452,7 +194,6 @@
     if (vehicle === "Machine") {
       return 'https://images.unsplash.com/photo-1573681649908-3f5a2a5da8f7?w=500&auto=format';
     }
-    
     return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
   }
 
@@ -576,7 +317,6 @@
     } catch (error) {
       console.error('Error fetching from Google Sheet:', error);
       
-      // Fallback to localStorage if available
       const stored = localStorage.getItem('headway_tyre_inventory');
       if (stored) {
         try {
@@ -605,28 +345,34 @@
     }
   }
 
+  // ⭐⭐⭐ FIXED: No longer adds quantities - uses latest record instead ⭐⭐⭐
   function parseCSVToInventory(csvText) {
     const lines = csvText.split(/\r?\n/);
     if (lines.length === 0) return [];
     
-    // Find header row
+    // Improved header detection - look for first non-empty row with expected columns
     let startRow = 0;
-    let headerIndex = -1;
-    for (let i = 0; i < Math.min(lines.length, 10); i++) {
-      if (lines[i].toLowerCase().includes('item description') || 
-          (lines[i].toLowerCase().includes('description') && lines[i].toLowerCase().includes('size'))) {
-        headerIndex = i;
+    let foundHeader = false;
+    
+    for (let i = 0; i < Math.min(lines.length, 15); i++) {
+      const line = lines[i].toLowerCase();
+      if ((line.includes('item') && line.includes('description')) || 
+          (line.includes('size') && (line.includes('qty') || line.includes('quantity')))) {
         startRow = i + 1;
+        foundHeader = true;
+        console.log(`Header found at row ${i}`);
         break;
       }
     }
     
-    // If no header found, assume first row is header
-    if (headerIndex === -1) {
-      startRow = 1;
+    // If no header found, assume first data row is row 1
+    if (!foundHeader) {
+      startRow = 0;
+      console.log("No header detected, starting from row 0");
     }
     
-    const inventory = [];
+    // Use Map for O(1) lookups by unique key (brand|size)
+    const tyreMap = new Map();
     let processedCount = 0;
     let skippedCount = 0;
     
@@ -634,7 +380,7 @@
       const line = lines[i].trim();
       if (!line) continue;
       
-      // Parse CSV line (handles quoted fields)
+      // Parse CSV line
       const columns = [];
       let current = '';
       let inQuotes = false;
@@ -689,31 +435,26 @@
       
       const vehicle = detectVehicleCategory(brand, model, size);
       
-      // Check if this brand+size already exists
-      const existingIndex = inventory.findIndex(t => 
-        t.brand === brand && t.size === size
-      );
+      // Create unique key
+      const key = `${brand}|${size}`;
       
-      if (existingIndex >= 0) {
-        // Update existing - add quantities (in case of duplicates)
-        inventory[existingIndex].qty1 += qty1;
-        inventory[existingIndex].qty4 += qty4;
-        processedCount++;
-      } else {
-        // Add new
-        inventory.push({
-          brand: brand,
-          model: model,
-          size: size,
-          vehicle: vehicle,
-          qty1: qty1,
-          qty4: qty4
-        });
-        processedCount++;
-      }
+      // ⭐ FIXED: REPLACE instead of ADD for duplicates
+      // Last occurrence in CSV wins (most recent data)
+      tyreMap.set(key, {
+        brand: brand,
+        model: model,
+        size: size,
+        vehicle: vehicle,
+        qty1: qty1,
+        qty4: qty4
+      });
+      processedCount++;
     }
     
-    console.log(`Parsed CSV: ${processedCount} items, ${skippedCount} skipped`);
+    // Convert Map back to array
+    const inventory = Array.from(tyreMap.values());
+    
+    console.log(`Parsed CSV: ${processedCount} total rows, ${skippedCount} skipped, ${inventory.length} unique tyres`);
     return inventory;
   }
 
