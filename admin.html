@@ -185,7 +185,8 @@
 
     .price-excluding {
       font-size: 0.8rem;
-      color: #666;
+      color: #1e293b;
+      font-weight: 500;
     }
 
     .price-including {
@@ -322,10 +323,16 @@
 
     .vat-note {
       text-align: right;
-      font-size: 0.7rem;
-      color: #666;
+      font-size: 0.75rem;
+      color: #334155;
       margin-bottom: 10px;
       padding-right: 10px;
+      background: #f8fafc;
+      display: inline-block;
+      width: auto;
+      border-radius: 24px;
+      padding: 6px 16px;
+      font-weight: 500;
     }
 
     @media (max-width: 768px) {
@@ -338,6 +345,10 @@
       }
       .price-including, .price-excluding {
         font-size: 0.7rem;
+      }
+      .vat-note {
+        font-size: 0.65rem;
+        padding: 4px 12px;
       }
     }
   </style>
@@ -418,9 +429,9 @@
     <button class="refresh-stock-btn" id="refreshStockBtn">🔄 Sync from Google Sheet</button>
   </div>
   
-  <!-- VAT Note -->
+  <!-- VAT Note: Updated to 14% -->
   <div class="vat-note">
-    💰 VAT Rate: 15% | Prices shown are <strong>Excluding VAT</strong> and <strong>Including VAT</strong>
+    💰 VAT Rate: 14% | Prices shown: <strong>Excluding VAT</strong> & <strong>Including 14% VAT</strong>
   </div>
   
   <!-- Stock Table -->
@@ -442,8 +453,8 @@
   // Expected columns: Item Description, Size, Qty 1, Qty 4, Price (optional - this is the base/excluding VAT price)
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
   
-  // VAT Rate (15% as per Botswana standard)
-  const VAT_RATE = 0.15;
+  // VAT RATE UPDATED: 14% as requested (Botswana standard updated rate)
+  const VAT_RATE = 0.14;
   
   let currentInventory = [];
   let isLoading = false;
@@ -508,7 +519,7 @@
     return true;
   }
 
-  // Calculate price including VAT
+  // Calculate price including VAT (updated to 14%)
   function getPriceWithVAT(priceExcluding) {
     if (priceExcluding && !isNaN(parseFloat(priceExcluding)) && parseFloat(priceExcluding) > 0) {
       return parseFloat(priceExcluding) * (1 + VAT_RATE);
@@ -609,7 +620,7 @@
       const vehicle = detectVehicleCategory(brand, model, size);
       const totalQty = qty1 + qty4;
       
-      // Calculate price including VAT
+      // Calculate price including VAT using the new 14% rate
       let priceIncludingVAT = getPriceWithVAT(priceExcludingVAT);
       
       // Include ALL items, even those with zero stock
@@ -653,7 +664,7 @@
         localStorage.setItem('headway_last_sync', Date.now().toString());
         renderStockTable();
         updateStats();
-        showMessage(`✅ Stock updated! ${currentInventory.length} tyre models loaded.`, 'success');
+        showMessage(`✅ Stock updated! ${currentInventory.length} tyre models loaded (VAT 14%).`, 'success');
       } else {
         throw new Error("No tyre data found");
       }
@@ -730,7 +741,7 @@
             <th>Qty4</th>
             <th>Total Stock</th>
             <th>Price (Excl. VAT)</th>
-            <th>Price (Incl. VAT)</th>
+            <th>Price (Incl. 14% VAT)</th>
           </tr>
         </thead>
         <tbody>
@@ -759,7 +770,7 @@
             `;
           }).join('')}
         </tbody>
-      </table>
+       </table>
     `;
     
     container.innerHTML = tableHtml;
@@ -866,7 +877,7 @@
     if (users[username] && users[username] === password) {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('adminSection').style.display = 'block';
-      document.getElementById('welcomeUser').innerHTML = `Welcome, ${username}! 👋 View complete stock and price list below.`;
+      document.getElementById('welcomeUser').innerHTML = `Welcome, ${username}! 👋 View complete stock and price list (14% VAT applied).`;
       
       loadCachedInventory();
       setupEventListeners();
