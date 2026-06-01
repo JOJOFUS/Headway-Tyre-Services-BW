@@ -39,7 +39,6 @@
     .refresh-btn:hover { background: #f97316; color: white; border-color: #f97316; }
     .last-updated { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 10px; }
     
-    /* grid & cards */
     .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 28px; padding: 40px 24px; max-width: 1480px; margin: 0 auto; }
     .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; cursor: pointer; }
     .tyre-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12); border-color: #facc1520; }
@@ -62,7 +61,6 @@
     .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f97316; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
-    /* MODAL - NO PRICING, NO DELIVERY MENTIONS */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -85,7 +83,7 @@
     }
     .modal-container {
       background: white;
-      max-width: 560px;
+      max-width: 640px;
       width: 90%;
       border-radius: 2rem;
       overflow-y: auto;
@@ -139,11 +137,11 @@
       margin-bottom: 6px;
     }
     .detail-value {
-      font-weight: 600;
-      font-size: 0.95rem;
+      font-weight: 500;
+      font-size: 0.9rem;
       color: #0f172a;
       word-break: break-word;
-      line-height: 1.4;
+      line-height: 1.45;
     }
     .badge-detail {
       display: inline-block;
@@ -159,6 +157,15 @@
       padding: 0.8rem;
       border-radius: 20px;
       margin-top: 6px;
+      white-space: pre-wrap;
+    }
+    .empty-sheet-data {
+      color: #64748b;
+      font-style: italic;
+      background: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
     }
     .modal-footer {
       background: #f8fafc;
@@ -219,18 +226,15 @@
   <p style="margin-top:6px;">🔍 Click any tyre card for detailed specifications & technical info</p>
 </footer>
 
-<!-- MODAL - NO PRICING, NO DELIVERY MENTIONS -->
 <div id="tyreDetailModal" class="modal-overlay">
   <div class="modal-container">
     <div class="modal-header">
       <h3>📋 Tyre Technical Specs</h3>
       <button class="close-modal" id="closeModalBtn">&times;</button>
     </div>
-    <div class="modal-body" id="modalBodyContent">
-      <!-- dynamic content without pricing or delivery mentions -->
-    </div>
+    <div class="modal-body" id="modalBodyContent"></div>
     <div class="modal-footer">
-      ⚡ Need assistance or pricing? Call <strong>2415381</strong> for expert advice.
+      ⚡ Need assistance? Call <strong>2415381</strong> for expert advice.
       <div class="contact-reminder">📞 Our team is ready to help you choose the right tyre.</div>
     </div>
   </div>
@@ -238,13 +242,28 @@
 
 <script>
   // ============================================================
-  // GOOGLE SHEETS CSV INTEGRATION (Stock & Details - NO PRICING, NO DELIVERY)
+  // GOOGLE SHEET COLUMN MAPPING (EXACT):
+  // Column 0: Item Description (NOT shown in Full Product Description)
+  // Column 1: Size
+  // Column 2: Qty 1
+  // Column 3: Qty 4
+  // Column 4: Price (Excluding VAT) - NOT DISPLAYED
+  // Column 5: Tread Pattern & Features
+  // Column 6: Load Index & Speed Rating
+  // Column 7: Ply Rating & Construction
+  // Column 8: Full Product Description (ONLY this is shown for Full Product Description)
   // ============================================================
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
   let currentInventory = [];
   let isLoading = false;
 
-  // Helper: detect vehicle category
+  function extractBrand(description) {
+    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
+    const match = description.match(brandPattern);
+    if (match) return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
+    return null;
+  }
+
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
@@ -269,13 +288,6 @@
     return "Car";
   }
 
-  function extractBrand(description) {
-    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
-    const match = description.match(brandPattern);
-    if (match) return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
-    return null;
-  }
-
   function isTyreItem(description, size) {
     const skipKeywords = ["FITTING","BALANCING","ALIGNMENT","PATCH","REPAIR","SERVICE","LABOUR",
       "VULCANIZING","CEMENT","SOLUTION","BUFFING","SPREADER","VALVE","PLUG","CABLE","RIM","BATTERY",
@@ -296,81 +308,84 @@
     return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
   }
 
-  // Generate meaningful technical info (no pricing, no delivery mentions)
-  function generateTreadInfo(vehicle, brand) {
-    if (vehicle === "Car") return "💧 Optimized water evacuation channels | Low rolling resistance silica compound | Silent groove design for comfort";
-    if (vehicle === "SUV") return "⛰️ All-terrain dual-compound | Reinforced shoulder blocks for cornering stability | Stone ejectors";
-    if (vehicle === "Truck") return "🏭 Deep 18mm tread depth | Heat-resistant belt package | Stone ejection platforms | Retreadable casing";
-    if (vehicle === "Agricultural") return "🌾 Self-cleaning R-1W tread bars | Extra sidewall flex zone | High flotation design";
-    return "🛡️ Cut & chip resistant compound | Heavy-duty casing | Extreme durability pattern";
-  }
-  
-  function generateLoadSpeed(size, vehicle) {
-    if (vehicle === "Car") return "Load Index: 91–94 | Speed Rating: V/W (up to 270 km/h)";
-    if (vehicle === "SUV") return "Load Index: 109–115 | Speed Rating: H/T (210 km/h)";
-    if (vehicle === "Truck") return "Load Index: 154/149L (dual/single) | Speed Rating: L (120 km/h)";
-    if (vehicle === "Agricultural") return "Load Index: 152A8 | Speed Rating: A8 (40 km/h field use)";
-    return "Load Index: 156A8 | Speed Rating: A8 industrial spec";
-  }
-  
-  function generatePlyRating(vehicle, size) {
-    if (vehicle === "Truck") return "16PR / 18PR (Steel belted radial) | 8-rib heavy duty";
-    if (vehicle === "Agricultural") return "12PR (R-1W traction rating) | 6-ply nylon casing";
-    if (vehicle === "Machine") return "20PR (L5 extreme duty) | 10-ply steel reinforced";
-    return "6PR / 8PR (Extra load capacity)";
-  }
-
-  function generateConstruction(vehicle) {
-    if (vehicle === "Truck") return "Steel belted radial | All-steel casing | 3 steel belts + 0° cap ply";
-    if (vehicle === "Car") return "Steel belted radial | Polyester cord body | Twin steel belts";
-    return "Radial steel belted | Nylon overlay | Reinforced bead filler";
-  }
-
-  function parseCSVToInventory(csvText) {
+  function parseCSVFromSheet(csvText) {
     const lines = csvText.split(/\r?\n/);
-    let startRow = 0;
-    for (let i = 0; i < Math.min(lines.length, 15); i++) {
+    if (lines.length === 0) return [];
+
+    let dataStart = 0;
+    for (let i = 0; i < Math.min(lines.length, 20); i++) {
       const line = lines[i].toLowerCase();
       if ((line.includes('item') && line.includes('description')) || (line.includes('size') && line.includes('qty'))) {
-        startRow = i + 1;
+        dataStart = i + 1;
         break;
       }
     }
+
     const tyreMap = new Map();
-    for (let i = startRow; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+
+    for (let i = dataStart; i < lines.length; i++) {
+      const rawLine = lines[i].trim();
+      if (!rawLine) continue;
+
       const cols = [];
-      let cur = '', inQ = false;
-      for (let ch of line) {
-        if (ch === '"') inQ = !inQ;
-        else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
-        else cur += ch;
+      let cur = '';
+      let inQuotes = false;
+      for (let ch of rawLine) {
+        if (ch === '"') {
+          inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          cols.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
       }
       cols.push(cur);
+      
       if (cols.length < 3) continue;
+
       let description = (cols[0] || '').replace(/^["']|["']$/g, '').trim();
       let size = (cols[1] || '').replace(/^["']|["']$/g, '').trim();
-      let qty1 = parseInt(cols[2],10) || 0;
-      let qty4 = cols.length > 3 ? (parseInt(cols[3],10) || 0) : 0;
+      let qty1 = parseInt(cols[2], 10) || 0;
+      let qty4 = (cols.length > 3) ? (parseInt(cols[3], 10) || 0) : 0;
+      
       if (!description || !size) continue;
       if (!isTyreItem(description, size)) continue;
+      
       let brand = extractBrand(description);
       if (!brand) continue;
       let model = description.replace(new RegExp(brand, 'i'), '').trim();
-      if (!model) model = description.substring(0,70);
+      if (!model) model = description.substring(0, 70);
+      
       size = size.replace(/^0[5-9]-/, '');
       const vehicle = detectVehicleCategory(brand, model, size);
-      const key = description;
+      
+      // EXACT COLUMN MAPPING - NO FALLBACKS
+      // Column 4 (index 4) = Price - SKIPPED entirely
+      // Column 5 (index 5) = Tread Pattern & Features
+      // Column 6 (index 6) = Load Index & Speed Rating
+      // Column 7 (index 7) = Ply Rating & Construction
+      // Column 8 (index 8) = Full Product Description (ONLY this column)
+      let treadPattern = (cols.length > 5) ? (cols[5] || '').replace(/^["']|["']$/g, '').trim() : '';
+      let loadSpeedRating = (cols.length > 6) ? (cols[6] || '').replace(/^["']|["']$/g, '').trim() : '';
+      let plyConstruction = (cols.length > 7) ? (cols[7] || '').replace(/^["']|["']$/g, '').trim() : '';
+      let fullProductDesc = (cols.length > 8) ? (cols[8] || '').replace(/^["']|["']$/g, '').trim() : '';
+      
+      const key = description + '|' + size;
+      
       if (!tyreMap.has(key)) {
         tyreMap.set(key, {
-          brand, model, size, vehicle,
-          qty1, qty4,
-          fullDescription: description,
-          treadPattern: generateTreadInfo(vehicle, brand),
-          loadSpeed: generateLoadSpeed(size, vehicle),
-          plyRating: generatePlyRating(vehicle, size),
-          construction: generateConstruction(vehicle)
+          brand: brand,
+          model: model,
+          size: size,
+          vehicle: vehicle,
+          qty1: qty1,
+          qty4: qty4,
+          // Store original description for reference but NOT for display
+          treadPattern: treadPattern,
+          loadSpeedRating: loadSpeedRating,
+          plyConstruction: plyConstruction,
+          fullProductDesc: fullProductDesc  // This is column 8 ONLY
         });
       } else {
         let existing = tyreMap.get(key);
@@ -378,6 +393,7 @@
         existing.qty4 += qty4;
       }
     }
+    
     return Array.from(tyreMap.values());
   }
 
@@ -388,7 +404,8 @@
       if (stockMode === 'low-stock' && total > 5) return false;
       const vehicleMatch = (vehicleCat === 'all') || (t.vehicle === vehicleCat);
       const s = searchText.toLowerCase();
-      const match = s === '' || t.brand.toLowerCase().includes(s) || t.model.toLowerCase().includes(s) || t.size.toLowerCase().includes(s) || t.fullDescription.toLowerCase().includes(s);
+      // Search uses brand, model, size (not the full product description)
+      const match = s === '' || t.brand.toLowerCase().includes(s) || t.model.toLowerCase().includes(s) || t.size.toLowerCase().includes(s);
       return vehicleMatch && match;
     });
   }
@@ -400,11 +417,13 @@
     let vehicleFilter = activeBtn ? activeBtn.getAttribute('data-vehicle') : 'all';
     const filtered = filterTyres(currentInventory, search, vehicleFilter, stockSelect);
     const grid = document.getElementById('stockGridContainer');
+    
     if (!grid) return;
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or category — only in-stock items shown.</p></div>`;
       return;
     }
+    
     grid.innerHTML = '';
     filtered.forEach(tyre => {
       const total = tyre.qty1 + tyre.qty4;
@@ -413,14 +432,17 @@
       const tyreImg = getTyreImage(tyre.size, tyre.vehicle);
       const card = document.createElement('div');
       card.className = `tyre-card`;
+      // Use brand + model for display (from columns 0 parsed)
+      const displayBrand = tyre.brand;
+      const displayModel = tyre.model;
       card.innerHTML = `
         <div class="img-wrapper">
-          <img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} tyre" loading="lazy">
+          <img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(displayBrand)} tyre" loading="lazy">
           <div class="stock-indicator ${stockStatusClass}">${stockLabel} · ${total} pcs</div>
         </div>
         <div class="card-body">
-          <div class="brand-name">${escapeHtml(tyre.brand)}</div>
-          <div class="tyre-title">${escapeHtml(tyre.model)}</div>
+          <div class="brand-name">${escapeHtml(displayBrand)}</div>
+          <div class="tyre-title">${escapeHtml(displayModel)}</div>
           <div class="size-spec">📐 ${escapeHtml(tyre.size)}</div>
           <div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div>
           <div class="qty-stats">
@@ -439,11 +461,18 @@
     });
   }
 
-  // Show detailed modal with technical specs (NO PRICING, NO DELIVERY)
   function showTyreDetails(tyre) {
     const total = tyre.qty1 + tyre.qty4;
     const modalBody = document.getElementById('modalBodyContent');
     if (!modalBody) return;
+    
+    const displaySheetData = (value, fieldName) => {
+      if (value && value.trim() !== '') {
+        return `<div class="spec-highlight">${escapeHtml(value)}</div>`;
+      }
+      return `<div class="empty-sheet-data">📭 No data available in Google Sheet for "${fieldName}"</div>`;
+    };
+    
     modalBody.innerHTML = `
       <div class="detail-section">
         <div class="detail-label">🏷️ Brand & Model</div>
@@ -463,26 +492,30 @@
       </div>
       <div class="detail-section">
         <div class="detail-label">🛞 Tread Pattern & Features</div>
-        <div class="spec-highlight">${escapeHtml(tyre.treadPattern)}</div>
+        ${displaySheetData(tyre.treadPattern, 'Tread Pattern & Features')}
       </div>
       <div class="detail-section">
         <div class="detail-label">⚙️ Load Index & Speed Rating</div>
-        <div class="spec-highlight">${escapeHtml(tyre.loadSpeed)}</div>
+        ${displaySheetData(tyre.loadSpeedRating, 'Load Index & Speed Rating')}
       </div>
       <div class="detail-section">
         <div class="detail-label">💪 Ply Rating & Construction</div>
-        <div class="spec-highlight">${escapeHtml(tyre.plyRating)}<br>${escapeHtml(tyre.construction)}</div>
+        ${displaySheetData(tyre.plyConstruction, 'Ply Rating & Construction')}
       </div>
       <div class="detail-section">
         <div class="detail-label">📝 Full Product Description</div>
-        <div class="detail-value" style="background:#f9fafb; padding:12px; border-radius:16px;">${escapeHtml(tyre.fullDescription)}</div>
+        ${displaySheetData(tyre.fullProductDesc, 'Full Product Description')}
       </div>
     `;
+    
     const modal = document.getElementById('tyreDetailModal');
     modal.classList.add('active');
   }
 
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
+  function escapeHtml(str) { 
+    if (!str) return ''; 
+    return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); 
+  }
 
   function updateLastUpdatedDisplay() {
     const last = localStorage.getItem('headway_last_updated');
@@ -494,26 +527,37 @@
     if(isLoading) return;
     isLoading = true;
     const grid = document.getElementById('stockGridContainer');
-    if(grid) grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching latest stock from Google Sheets...</p></div>`;
+    if(grid) grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching latest stock & technical specs from Google Sheets...</p></div>`;
     try {
       const resp = await fetch(GOOGLE_SHEET_CSV_URL);
       if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const csv = await resp.text();
-      const parsed = parseCSVToInventory(csv);
+      const parsed = parseCSVFromSheet(csv);
       if(parsed.length > 0) {
         currentInventory = parsed;
         localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
         localStorage.setItem('headway_last_updated', Date.now().toString());
         renderInventory();
         updateLastUpdatedDisplay();
-        showNotif(`✅ Updated! ${currentInventory.length} tyre models loaded.`, true);
-      } else throw new Error("No tyre data");
+        showNotif(`✅ Updated! ${currentInventory.length} tyre models loaded from Google Sheet.`, true);
+      } else {
+        throw new Error("No tyre data found in sheet");
+      }
     } catch(err) {
       console.error(err);
       const stored = localStorage.getItem('headway_tyre_inventory');
-      if(stored) { currentInventory = JSON.parse(stored); renderInventory(); updateLastUpdatedDisplay(); showNotif(`⚠️ Using cached data: ${err.message}`, false); }
-      else { if(grid) grid.innerHTML = `<div class="empty-state"><h3>❌ Failed to load</h3><p>Check Google Sheet publish settings.</p></div>`; showNotif(`Error: ${err.message}`, false); }
-    } finally { isLoading = false; }
+      if(stored) { 
+        currentInventory = JSON.parse(stored); 
+        renderInventory(); 
+        updateLastUpdatedDisplay(); 
+        showNotif(`⚠️ Using cached data: ${err.message}`, false); 
+      } else { 
+        if(grid) grid.innerHTML = `<div class="empty-state"><h3>❌ Failed to load</h3><p>Check Google Sheet publish settings. Make sure it's published as CSV.</p></div>`; 
+        showNotif(`Error: ${err.message}`, false); 
+      }
+    } finally { 
+      isLoading = false; 
+    }
   }
 
   function showNotif(msg, isSuccess) {
@@ -551,7 +595,10 @@
     bindEvents();
     updateLastUpdatedDisplay();
     const storedInv = localStorage.getItem('headway_tyre_inventory');
-    if(storedInv) { currentInventory = JSON.parse(storedInv); renderInventory(); }
+    if(storedInv) { 
+      currentInventory = JSON.parse(storedInv); 
+      renderInventory(); 
+    }
     fetchFromGoogleSheet();
   });
 </script>
