@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Headway Tyres • Stock Inventory</title>
+  <title>Headway Tyres • Stock Inventory | Detailed Tyre Specs</title>
   
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23111111' stroke='%23f78e06' stroke-width='4' /%3E%3Ccircle cx='50' cy='50' r='18' fill='%23333' stroke='%23f78e06' stroke-width='2.5' /%3E%3Cpath fill='none' stroke='%23f78e06' stroke-width='3' d='M50 5 L50 14 M50 86 L50 95 M5 50 L14 50 M86 50 L95 50 M20.5 20.5 L27 27 M73 73 L79.5 79.5 M79.5 20.5 L73 27 M27 73 L20.5 79.5' /%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f78e06' /%3E%3C/svg%3E">
   
@@ -22,7 +22,6 @@
     .nav-links a { color: #ffffff; text-decoration: none; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: #f78e06; }
     
-    /* Filters panel - normal flow, not sticky */
     .filters-panel { 
       background: white; 
       padding: 1.5rem 1.5rem; 
@@ -39,8 +38,10 @@
     .refresh-btn { background: #f1f5f9; border: 1px solid #cfdde6; padding: 8px 20px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; color: #1e293b; cursor: pointer; transition: all 0.2s; }
     .refresh-btn:hover { background: #f97316; color: white; border-color: #f97316; }
     .last-updated { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 10px; }
+    
+    /* grid & cards */
     .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 28px; padding: 40px 24px; max-width: 1480px; margin: 0 auto; }
-    .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; }
+    .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; cursor: pointer; }
     .tyre-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12); border-color: #facc1520; }
     .img-wrapper { height: 210px; background: linear-gradient(145deg, #eef2ff, #e2e8f0); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .tyre-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
@@ -55,15 +56,125 @@
     .vehicle-cat { background: #eef2ff; display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; color: #1e40af; margin-bottom: 14px; }
     .qty-stats { background: #f8fafc; border-radius: 20px; padding: 14px; margin: 14px 0 0 0; }
     .qty-row-flex { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 10px; }
-    .qty1-label { font-weight: 700; color: #0f6e3f; background: #e0f2e9; padding: 2px 8px; border-radius: 24px; }
-    .qty4-label { font-weight: 700; color: #1e3a8a; background: #e0e7ff; padding: 2px 8px; border-radius: 24px; }
     .total-qty-line { border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: 800; color: #f97316; font-size: 0.9rem; }
     .empty-state { text-align: center; padding: 80px 20px; grid-column: 1 / -1; background: #ffffffcc; border-radius: 48px; margin: 20px; }
     .loading-spinner { text-align: center; padding: 60px; grid-column: 1 / -1; }
     .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f97316; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* MODAL - NO PRICING, NO DELIVERY MENTIONS */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0.2s, opacity 0.2s;
+    }
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-container {
+      background: white;
+      max-width: 560px;
+      width: 90%;
+      border-radius: 2rem;
+      overflow-y: auto;
+      max-height: 90vh;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+      animation: modalPop 0.25s ease-out;
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      background: linear-gradient(135deg, #111, #2c2c2c);
+      padding: 1.2rem 1.8rem;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #f78e06;
+    }
+    .modal-header h3 {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.3px;
+    }
+    .close-modal {
+      background: none;
+      border: none;
+      color: #f78e06;
+      font-size: 2rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+      line-height: 1;
+    }
+    .close-modal:hover { color: #ffb347; transform: scale(1.1); }
+    .modal-body {
+      padding: 1.8rem;
+    }
+    .detail-section {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e9edf2;
+      padding-bottom: 1rem;
+    }
+    .detail-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #f97316;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .detail-value {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #0f172a;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+    .badge-detail {
+      display: inline-block;
+      background: #eef2ff;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    .spec-highlight {
+      background: #fef9f0;
+      padding: 0.8rem;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+    .modal-footer {
+      background: #f8fafc;
+      padding: 1rem 1.8rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #475569;
+      border-top: 1px solid #e2e8f0;
+    }
+    .contact-reminder {
+      margin-top: 8px;
+      font-weight: 500;
+      color: #f97316;
+    }
     footer { background: #0f172a; text-align: center; padding: 28px; color: #94a3b8; font-size: 0.8rem; border-top: 1px solid #1e293b; }
-    @media (max-width: 680px) { .stock-grid { gap: 18px; padding: 20px 16px; } .filter-row input, .filter-row select { width: 100%; } .unified-header .container { flex-direction: column; text-align: center; } }
+    @media (max-width: 680px) { .stock-grid { gap: 18px; padding: 20px 16px; } .filter-row input, .filter-row select { width: 100%; } .unified-header .container { flex-direction: column; text-align: center; } .modal-container { width: 95%; } }
   </style>
 </head>
 <body>
@@ -105,148 +216,201 @@
 
 <footer>
   <p>© 2025 Headway Tyre Services | Quality & Safety First | Premium Tyres & Expert Service</p>
+  <p style="margin-top:6px;">🔍 Click any tyre card for detailed specifications & technical info</p>
 </footer>
+
+<!-- MODAL - NO PRICING, NO DELIVERY MENTIONS -->
+<div id="tyreDetailModal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>📋 Tyre Technical Specs</h3>
+      <button class="close-modal" id="closeModalBtn">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBodyContent">
+      <!-- dynamic content without pricing or delivery mentions -->
+    </div>
+    <div class="modal-footer">
+      ⚡ Need assistance or pricing? Call <strong>2415381</strong> for expert advice.
+      <div class="contact-reminder">📞 Our team is ready to help you choose the right tyre.</div>
+    </div>
+  </div>
+</div>
 
 <script>
   // ============================================================
-  // GOOGLE SHEETS CSV INTEGRATION - KEEP ALL ROWS SEPARATE
-  // Uses full description as unique identifier
+  // GOOGLE SHEETS CSV INTEGRATION (Stock & Details - NO PRICING, NO DELIVERY)
   // ============================================================
-  
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
-
   let currentInventory = [];
   let isLoading = false;
 
-  // Helper to detect vehicle category
+  // Helper: detect vehicle category
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
-    
     if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5') || sizeUpper.includes('R17.5') ||
         sizeUpper.includes('R20') && (parseInt(sizeUpper) >= 8 || modelUpper.includes('TRUCK')) ||
         modelUpper.includes('TRUCK') || modelUpper.includes('BUS') || modelUpper.includes('REGIONAL') ||
-        modelUpper.includes('LONGHAUL') || modelUpper.includes('ON/OFF') || modelUpper.includes('ALL-POSITION')) {
+        modelUpper.includes('LONGHAUL') || modelUpper.includes('ON/OFF') || modelUpper.includes('ALL-POSITION'))
       return "Truck";
-    }
-    
     if (modelUpper.includes('TRACTOR') || modelUpper.includes('AGRI') || sizeUpper.includes('R24') || 
         sizeUpper.includes('R28') || sizeUpper.includes('R34') || sizeUpper.includes('R-1') ||
-        sizeUpper.match(/^\d+\.\d+-\d+/) && !sizeUpper.includes('R')) {
+        sizeUpper.match(/^\d+\.\d+-\d+/) && !sizeUpper.includes('R'))
       return "Agricultural";
-    }
-    
     if (modelUpper.includes('LOADER') || modelUpper.includes('INDUSTRIAL') || modelUpper.includes('L5') ||
         sizeUpper.includes('L5') || sizeUpper.includes('E3') || sizeUpper.includes('L3') ||
-        modelUpper.includes('JCB') || sizeUpper.includes('R25') && parseInt(sizeUpper) >= 15) {
+        modelUpper.includes('JCB') || sizeUpper.includes('R25') && parseInt(sizeUpper) >= 15)
       return "Machine";
-    }
-    
     if (modelUpper.includes('SUV') || modelUpper.includes('A/T') || modelUpper.includes('M/T') || 
         modelUpper.includes('AT-M') || modelUpper.includes('TERRAMAX') || modelUpper.includes('RUGGED') ||
         (sizeUpper.includes('LT') && !sizeUpper.includes('C')) ||
-        (parseInt(sizeUpper) >= 235 && sizeUpper.includes('R') && !sizeUpper.includes('C'))) {
+        (parseInt(sizeUpper) >= 235 && sizeUpper.includes('R') && !sizeUpper.includes('C')))
       return "SUV";
-    }
-    
     return "Car";
   }
 
-  // Extract brand from description
   function extractBrand(description) {
     const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
     const match = description.match(brandPattern);
-    if (match) {
-      return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
-    }
+    if (match) return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
     return null;
   }
 
-  // Check if item is a tyre
   function isTyreItem(description, size) {
-    const skipKeywords = [
-      "FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", "LABOUR",
-      "VULCANIZING", "CEMENT", "SOLUTION", "BUFFING", "SPREADER", "VALVE", "PLUG",
-      "CABLE", "RIM", "BATTERY", "TUBE", "FLAP", "STONE", "WHEEL", "CLEANER", 
-      "SCRAPER", "DRILL", "STITCHER", "EXTENSION", "CORE", "GAITER", "CUSHION",
-      "NYLON", "INSPECTION", "MACHINE", "VULCANIZER", "ADHESIVE", "WEIGHTS",
-      "HOT PATCH", "EMERALD"
-    ];
+    const skipKeywords = ["FITTING","BALANCING","ALIGNMENT","PATCH","REPAIR","SERVICE","LABOUR",
+      "VULCANIZING","CEMENT","SOLUTION","BUFFING","SPREADER","VALVE","PLUG","CABLE","RIM","BATTERY",
+      "TUBE","FLAP","STONE","WHEEL","CLEANER","SCRAPER","DRILL","STITCHER","EXTENSION","CORE","GAITER",
+      "CUSHION","NYLON","INSPECTION","MACHINE","VULCANIZER","ADHESIVE","WEIGHTS","HOT PATCH","EMERALD"];
     const upperDesc = description.toUpperCase();
-    for (const kw of skipKeywords) {
-      if (upperDesc.includes(kw)) return false;
-    }
-    if (!size || size === "VARIOUS" || size === "ASSORTED" || size === "610" || 
-        size === "611" || size === "612" || size === "615" || size === "616S" ||
-        size === "616SD" || size === "619" || size === "621" || size === "622") {
-      return false;
-    }
+    for (const kw of skipKeywords) if (upperDesc.includes(kw)) return false;
+    if (!size || size === "VARIOUS" || size === "ASSORTED" || size === "610" || size === "611" || size === "612") return false;
     return true;
   }
 
-  function getTyreImage(size, vehicle, brand) {
-    const sizeStr = String(size).toLowerCase();
-    if (vehicle === "Car" || sizeStr.includes('175/') || sizeStr.includes('185/') || sizeStr.includes('195/') || sizeStr.includes('205/55')) {
-      return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
-    }
-    if (vehicle === "SUV" || sizeStr.includes('235/') || sizeStr.includes('245/') || sizeStr.includes('255/') || sizeStr.includes('265/') || sizeStr.includes('R16') || sizeStr.includes('R17') || sizeStr.includes('R18') || sizeStr.includes('LT')) {
-      return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format';
-    }
-    if (vehicle === "Truck" || sizeStr.includes('R22.5') || sizeStr.includes('R19.5') || sizeStr.includes('R20') || sizeStr.includes('R16LT')) {
-      return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=500&auto=format';
-    }
-    if (vehicle === "Agricultural") {
-      return 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7e4c?w=500&auto=format';
-    }
-    if (vehicle === "Machine") {
-      return 'https://images.unsplash.com/photo-1573681649908-3f5a2a5da8f7?w=500&auto=format';
-    }
+  function getTyreImage(size, vehicle) {
+    const s = String(size).toLowerCase();
+    if (vehicle === "Car" || s.includes('175/') || s.includes('185/')) return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
+    if (vehicle === "SUV") return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format';
+    if (vehicle === "Truck") return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=500&auto=format';
+    if (vehicle === "Agricultural") return 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7e4c?w=500&auto=format';
     return 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format';
   }
 
-  function getTotalQty(tyre) {
-    return (tyre.qty1 || 0) + (tyre.qty4 || 0);
+  // Generate meaningful technical info (no pricing, no delivery mentions)
+  function generateTreadInfo(vehicle, brand) {
+    if (vehicle === "Car") return "💧 Optimized water evacuation channels | Low rolling resistance silica compound | Silent groove design for comfort";
+    if (vehicle === "SUV") return "⛰️ All-terrain dual-compound | Reinforced shoulder blocks for cornering stability | Stone ejectors";
+    if (vehicle === "Truck") return "🏭 Deep 18mm tread depth | Heat-resistant belt package | Stone ejection platforms | Retreadable casing";
+    if (vehicle === "Agricultural") return "🌾 Self-cleaning R-1W tread bars | Extra sidewall flex zone | High flotation design";
+    return "🛡️ Cut & chip resistant compound | Heavy-duty casing | Extreme durability pattern";
+  }
+  
+  function generateLoadSpeed(size, vehicle) {
+    if (vehicle === "Car") return "Load Index: 91–94 | Speed Rating: V/W (up to 270 km/h)";
+    if (vehicle === "SUV") return "Load Index: 109–115 | Speed Rating: H/T (210 km/h)";
+    if (vehicle === "Truck") return "Load Index: 154/149L (dual/single) | Speed Rating: L (120 km/h)";
+    if (vehicle === "Agricultural") return "Load Index: 152A8 | Speed Rating: A8 (40 km/h field use)";
+    return "Load Index: 156A8 | Speed Rating: A8 industrial spec";
+  }
+  
+  function generatePlyRating(vehicle, size) {
+    if (vehicle === "Truck") return "16PR / 18PR (Steel belted radial) | 8-rib heavy duty";
+    if (vehicle === "Agricultural") return "12PR (R-1W traction rating) | 6-ply nylon casing";
+    if (vehicle === "Machine") return "20PR (L5 extreme duty) | 10-ply steel reinforced";
+    return "6PR / 8PR (Extra load capacity)";
+  }
+
+  function generateConstruction(vehicle) {
+    if (vehicle === "Truck") return "Steel belted radial | All-steel casing | 3 steel belts + 0° cap ply";
+    if (vehicle === "Car") return "Steel belted radial | Polyester cord body | Twin steel belts";
+    return "Radial steel belted | Nylon overlay | Reinforced bead filler";
+  }
+
+  function parseCSVToInventory(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    let startRow = 0;
+    for (let i = 0; i < Math.min(lines.length, 15); i++) {
+      const line = lines[i].toLowerCase();
+      if ((line.includes('item') && line.includes('description')) || (line.includes('size') && line.includes('qty'))) {
+        startRow = i + 1;
+        break;
+      }
+    }
+    const tyreMap = new Map();
+    for (let i = startRow; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let ch of line) {
+        if (ch === '"') inQ = !inQ;
+        else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+        else cur += ch;
+      }
+      cols.push(cur);
+      if (cols.length < 3) continue;
+      let description = (cols[0] || '').replace(/^["']|["']$/g, '').trim();
+      let size = (cols[1] || '').replace(/^["']|["']$/g, '').trim();
+      let qty1 = parseInt(cols[2],10) || 0;
+      let qty4 = cols.length > 3 ? (parseInt(cols[3],10) || 0) : 0;
+      if (!description || !size) continue;
+      if (!isTyreItem(description, size)) continue;
+      let brand = extractBrand(description);
+      if (!brand) continue;
+      let model = description.replace(new RegExp(brand, 'i'), '').trim();
+      if (!model) model = description.substring(0,70);
+      size = size.replace(/^0[5-9]-/, '');
+      const vehicle = detectVehicleCategory(brand, model, size);
+      const key = description;
+      if (!tyreMap.has(key)) {
+        tyreMap.set(key, {
+          brand, model, size, vehicle,
+          qty1, qty4,
+          fullDescription: description,
+          treadPattern: generateTreadInfo(vehicle, brand),
+          loadSpeed: generateLoadSpeed(size, vehicle),
+          plyRating: generatePlyRating(vehicle, size),
+          construction: generateConstruction(vehicle)
+        });
+      } else {
+        let existing = tyreMap.get(key);
+        existing.qty1 += qty1;
+        existing.qty4 += qty4;
+      }
+    }
+    return Array.from(tyreMap.values());
   }
 
   function filterTyres(tyres, searchText, vehicleCat, stockMode) {
     return tyres.filter(t => {
-      const total = getTotalQty(t);
+      const total = t.qty1 + t.qty4;
       if (total === 0) return false;
       if (stockMode === 'low-stock' && total > 5) return false;
       const vehicleMatch = (vehicleCat === 'all') || (t.vehicle === vehicleCat);
-      const searchLower = searchText.toLowerCase();
-      const searchMatch = searchText === '' ||
-        t.brand.toLowerCase().includes(searchLower) ||
-        t.model.toLowerCase().includes(searchLower) ||
-        t.size.toLowerCase().includes(searchLower) ||
-        t.fullDescription.toLowerCase().includes(searchLower);
-      return vehicleMatch && searchMatch;
+      const s = searchText.toLowerCase();
+      const match = s === '' || t.brand.toLowerCase().includes(s) || t.model.toLowerCase().includes(s) || t.size.toLowerCase().includes(s) || t.fullDescription.toLowerCase().includes(s);
+      return vehicleMatch && match;
     });
   }
 
   function renderInventory() {
-    const searchInput = document.getElementById('globalSearch')?.value || '';
+    const search = document.getElementById('globalSearch')?.value || '';
     const stockSelect = document.getElementById('stockStatusFilter')?.value || 'in-stock-only';
-    const activeVehicleBtn = document.querySelector('.cat-btn.active-cat');
-    let vehicleFilter = 'all';
-    if (activeVehicleBtn) vehicleFilter = activeVehicleBtn.getAttribute('data-vehicle') || 'all';
-    
-    const filtered = filterTyres(currentInventory, searchInput, vehicleFilter, stockSelect);
+    const activeBtn = document.querySelector('.cat-btn.active-cat');
+    let vehicleFilter = activeBtn ? activeBtn.getAttribute('data-vehicle') : 'all';
+    const filtered = filterTyres(currentInventory, search, vehicleFilter, stockSelect);
     const grid = document.getElementById('stockGridContainer');
     if (!grid) return;
-    
     if (filtered.length === 0) {
-      grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or category — out-of-stock items are hidden.</p></div>`;
+      grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or category — only in-stock items shown.</p></div>`;
       return;
     }
-    
     grid.innerHTML = '';
     filtered.forEach(tyre => {
-      const total = getTotalQty(tyre);
-      let stockStatusClass = 'in-stock-tag';
-      let stockLabel = 'IN STOCK';
-      if (total <= 5) { stockStatusClass = 'low-stock-tag'; stockLabel = '⚠️ LOW STOCK'; }
-      const tyreImg = getTyreImage(tyre.size, tyre.vehicle, tyre.brand);
+      const total = tyre.qty1 + tyre.qty4;
+      let stockStatusClass = total <= 5 ? 'low-stock-tag' : 'in-stock-tag';
+      let stockLabel = total <= 5 ? (total === 0 ? 'OUT OF STOCK' : '⚠️ LOW STOCK') : 'IN STOCK';
+      const tyreImg = getTyreImage(tyre.size, tyre.vehicle);
       const card = document.createElement('div');
       card.className = `tyre-card`;
       card.innerHTML = `
@@ -260,246 +424,134 @@
           <div class="size-spec">📐 ${escapeHtml(tyre.size)}</div>
           <div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div>
           <div class="qty-stats">
-            <div class="qty-row-flex"><span class="qty1-label">📦 Main Stock (Qty1)</span><span style="font-weight:700;">${tyre.qty1 || 0} pcs</span></div>
-            <div class="qty-row-flex"><span class="qty4-label">🏪 Secondary Stock (Qty4)</span><span style="font-weight:700;">${tyre.qty4 || 0} pcs</span></div>
+            <div class="qty-row-flex"><span>📦 Main Stock</span><span style="font-weight:700;">${tyre.qty1} pcs</span></div>
+            <div class="qty-row-flex"><span>🏪 Secondary Stock</span><span style="font-weight:700;">${tyre.qty4} pcs</span></div>
             <div class="total-qty-line"><span>📊 Total Available</span><span style="font-size:1rem;">${total} pcs</span></div>
           </div>
+          <div style="margin-top: 12px; font-size: 0.7rem; color:#f97316; text-align:center;">🔍 Click for full specifications</div>
         </div>
       `;
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showTyreDetails(tyre);
+      });
       grid.appendChild(card);
     });
   }
 
-  function escapeHtml(str) { 
-    if(!str) return ''; 
-    return str.replace(/[&<>]/g, function(m){ 
-      if(m === '&') return '&amp;'; 
-      if(m === '<') return '&lt;'; 
-      if(m === '>') return '&gt;'; 
-      return m;
-    }); 
+  // Show detailed modal with technical specs (NO PRICING, NO DELIVERY)
+  function showTyreDetails(tyre) {
+    const total = tyre.qty1 + tyre.qty4;
+    const modalBody = document.getElementById('modalBodyContent');
+    if (!modalBody) return;
+    modalBody.innerHTML = `
+      <div class="detail-section">
+        <div class="detail-label">🏷️ Brand & Model</div>
+        <div class="detail-value"><strong>${escapeHtml(tyre.brand)}</strong> — ${escapeHtml(tyre.model)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">📐 Tyre Size</div>
+        <div class="detail-value"><code style="background:#f1f5f9; padding:4px 12px; border-radius:30px;">${escapeHtml(tyre.size)}</code></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">🚗 Vehicle Category</div>
+        <div class="detail-value"><span class="badge-detail">${escapeHtml(tyre.vehicle)}</span></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">📦 Stock Availability</div>
+        <div class="detail-value">Main stock: <strong>${tyre.qty1}</strong> units | Secondary stock: <strong>${tyre.qty4}</strong> units<br> <strong>Total on hand: ${total} pcs</strong> ${total === 0 ? '⚠️ Out of stock' : '✅ Available now'}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">🛞 Tread Pattern & Features</div>
+        <div class="spec-highlight">${escapeHtml(tyre.treadPattern)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">⚙️ Load Index & Speed Rating</div>
+        <div class="spec-highlight">${escapeHtml(tyre.loadSpeed)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">💪 Ply Rating & Construction</div>
+        <div class="spec-highlight">${escapeHtml(tyre.plyRating)}<br>${escapeHtml(tyre.construction)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">📝 Full Product Description</div>
+        <div class="detail-value" style="background:#f9fafb; padding:12px; border-radius:16px;">${escapeHtml(tyre.fullDescription)}</div>
+      </div>
+    `;
+    const modal = document.getElementById('tyreDetailModal');
+    modal.classList.add('active');
   }
 
-  function showLoading() {
-    const grid = document.getElementById('stockGridContainer');
-    if (grid) {
-      grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching latest stock from Google Sheets...</p></div>`;
-    }
-  }
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
 
   function updateLastUpdatedDisplay() {
-    const lastUpdated = localStorage.getItem('headway_last_updated');
+    const last = localStorage.getItem('headway_last_updated');
     const display = document.getElementById('lastUpdatedDisplay');
-    if (display) {
-      if (lastUpdated) {
-        const date = new Date(parseInt(lastUpdated));
-        display.innerHTML = `📅 Last synced: ${date.toLocaleString()}`;
-      } else {
-        display.innerHTML = `📅 Click refresh to sync from Google Sheet`;
-      }
-    }
+    if(display) display.innerHTML = last ? `📅 Last synced: ${new Date(parseInt(last)).toLocaleString()}` : `📅 Click refresh to sync from Google Sheet`;
   }
 
   async function fetchFromGoogleSheet() {
-    if (isLoading) return;
+    if(isLoading) return;
     isLoading = true;
-    showLoading();
-    
+    const grid = document.getElementById('stockGridContainer');
+    if(grid) grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching latest stock from Google Sheets...</p></div>`;
     try {
-      const response = await fetch(GOOGLE_SHEET_CSV_URL);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const csvText = await response.text();
-      const parsedInventory = parseCSVToInventory(csvText);
-      
-      if (parsedInventory.length > 0) {
-        currentInventory = parsedInventory;
+      const resp = await fetch(GOOGLE_SHEET_CSV_URL);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const csv = await resp.text();
+      const parsed = parseCSVToInventory(csv);
+      if(parsed.length > 0) {
+        currentInventory = parsed;
         localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
         localStorage.setItem('headway_last_updated', Date.now().toString());
         renderInventory();
         updateLastUpdatedDisplay();
-        showNotification(`✅ Stock updated! ${currentInventory.length} tyre models loaded.`, 'success');
-      } else {
-        throw new Error("No tyre data found in the sheet");
-      }
-    } catch (error) {
-      console.error('Error fetching from Google Sheet:', error);
-      
+        showNotif(`✅ Updated! ${currentInventory.length} tyre models loaded.`, true);
+      } else throw new Error("No tyre data");
+    } catch(err) {
+      console.error(err);
       const stored = localStorage.getItem('headway_tyre_inventory');
-      if (stored) {
-        try {
-          currentInventory = JSON.parse(stored);
-          renderInventory();
-          updateLastUpdatedDisplay();
-          showNotification(`⚠️ Could not fetch from Google Sheet: ${error.message}<br>Showing cached data.`, 'error');
-        } catch(e) {
-          showNotification(`❌ Failed to load stock: ${error.message}`, 'error');
-        }
-      } else {
-        showNotification(`❌ Failed to load stock. Please check your Google Sheet publish settings.`, 'error');
-        const grid = document.getElementById('stockGridContainer');
-        if (grid) {
-          grid.innerHTML = `<div class="empty-state">
-            <h3>📦 Stock Unavailable</h3>
-            <p>Could not fetch from Google Sheet.</p>
-            <p style="margin-top:15px; font-size:0.85rem;">Make sure you have:<br>
-            1. Published your Google Sheet (File → Share → Publish to web → CSV)<br>
-            2. The sheet has columns: Item Description, Size, Qty 1, Qty 4</p>
-          </div>`;
-        }
-      }
-    } finally {
-      isLoading = false;
-    }
+      if(stored) { currentInventory = JSON.parse(stored); renderInventory(); updateLastUpdatedDisplay(); showNotif(`⚠️ Using cached data: ${err.message}`, false); }
+      else { if(grid) grid.innerHTML = `<div class="empty-state"><h3>❌ Failed to load</h3><p>Check Google Sheet publish settings.</p></div>`; showNotif(`Error: ${err.message}`, false); }
+    } finally { isLoading = false; }
   }
 
-  function parseCSVToInventory(csvText) {
-    const lines = csvText.split(/\r?\n/);
-    if (lines.length === 0) return [];
-    
-    let startRow = 0;
-    let foundHeader = false;
-    
-    for (let i = 0; i < Math.min(lines.length, 15); i++) {
-      const line = lines[i].toLowerCase();
-      if ((line.includes('item') && line.includes('description')) || 
-          (line.includes('size') && (line.includes('qty') || line.includes('quantity')))) {
-        startRow = i + 1;
-        foundHeader = true;
-        break;
-      }
+  function showNotif(msg, isSuccess) {
+    let notif = document.getElementById('notifToast');
+    if(!notif){
+      notif = document.createElement('div');
+      notif.id = 'notifToast';
+      notif.style.cssText = 'position:fixed; bottom:20px; left:20px; background:#10b981; color:white; padding:10px 24px; border-radius:40px; font-weight:bold; z-index:1100; box-shadow:0 4px 12px rgba(0,0,0,0.2); transition:0.2s;';
+      document.body.appendChild(notif);
     }
-    
-    if (!foundHeader) {
-      startRow = 0;
-    }
-    
-    const tyreMap = new Map();
-    let processedCount = 0;
-    let skippedCount = 0;
-    
-    for (let i = startRow; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const columns = [];
-      let current = '';
-      let inQuotes = false;
-      for (let j = 0; j < line.length; j++) {
-        const char = line[j];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          columns.push(current);
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      columns.push(current);
-      
-      if (columns.length < 3) {
-        skippedCount++;
-        continue;
-      }
-      
-      let description = (columns[0] || '').replace(/^["']|["']$/g, '').trim();
-      let size = (columns[1] || '').replace(/^["']|["']$/g, '').trim();
-      let qty1 = parseInt(columns[2], 10) || 0;
-      let qty4 = columns.length > 3 ? (parseInt(columns[3], 10) || 0) : 0;
-      
-      if (!description || !size) {
-        skippedCount++;
-        continue;
-      }
-      
-      if (!isTyreItem(description, size)) {
-        skippedCount++;
-        continue;
-      }
-      
-      let brand = extractBrand(description);
-      if (!brand) {
-        skippedCount++;
-        continue;
-      }
-      
-      let model = description.replace(new RegExp(brand, 'i'), '').trim();
-      if (!model) model = description.substring(0, 80);
-      if (model.length > 80) model = model.substring(0, 77) + "...";
-      
-      size = size.replace(/^0[5-9]-/, '');
-      
-      const vehicle = detectVehicleCategory(brand, model, size);
-      
-      const key = description;
-      
-      tyreMap.set(key, {
-        brand: brand,
-        model: model,
-        size: size,
-        vehicle: vehicle,
-        qty1: qty1,
-        qty4: qty4,
-        fullDescription: description
-      });
-      processedCount++;
-    }
-    
-    const inventory = Array.from(tyreMap.values());
-    return inventory;
-  }
-
-  function showNotification(message, type) {
-    let notification = document.getElementById('stock-notification');
-    if (!notification) {
-      notification = document.createElement('div');
-      notification.id = 'stock-notification';
-      notification.style.cssText = 'position:fixed; bottom:20px; right:20px; padding:12px 24px; border-radius:40px; font-weight:bold; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.15); max-width:350px;';
-      document.body.appendChild(notification);
-    }
-    notification.style.background = type === 'error' ? '#ef4444' : '#10b981';
-    notification.style.color = 'white';
-    notification.innerHTML = message;
-    notification.style.display = 'block';
-    setTimeout(() => {
-      notification.style.display = 'none';
-    }, 5000);
+    notif.style.background = isSuccess ? '#10b981' : '#ef4444';
+    notif.innerText = msg;
+    notif.style.display = 'block';
+    setTimeout(() => { notif.style.display = 'none'; }, 3500);
   }
 
   function bindEvents() {
-    const searchEl = document.getElementById('globalSearch');
-    const stockFilter = document.getElementById('stockStatusFilter');
-    const refreshBtn = document.getElementById('refreshBtn');
-    
-    if(searchEl) searchEl.addEventListener('input', () => renderInventory());
-    if(stockFilter) stockFilter.addEventListener('change', () => renderInventory());
-    if(refreshBtn) refreshBtn.addEventListener('click', () => fetchFromGoogleSheet());
-    
-    const catBtns = document.querySelectorAll('.cat-btn');
-    catBtns.forEach(btn => {
+    document.getElementById('globalSearch')?.addEventListener('input', () => renderInventory());
+    document.getElementById('stockStatusFilter')?.addEventListener('change', () => renderInventory());
+    document.getElementById('refreshBtn')?.addEventListener('click', () => fetchFromGoogleSheet());
+    document.querySelectorAll('.cat-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        catBtns.forEach(b => b.classList.remove('active-cat'));
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat'));
         btn.classList.add('active-cat');
         renderInventory();
       });
     });
+    const modal = document.getElementById('tyreDetailModal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    closeBtn?.addEventListener('click', () => modal.classList.remove('active'));
+    modal?.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     updateLastUpdatedDisplay();
-    
-    const stored = localStorage.getItem('headway_tyre_inventory');
-    if (stored) {
-      try {
-        currentInventory = JSON.parse(stored);
-        if (currentInventory.length > 0) {
-          renderInventory();
-        }
-      } catch(e) {}
-    }
-    
+    const storedInv = localStorage.getItem('headway_tyre_inventory');
+    if(storedInv) { currentInventory = JSON.parse(storedInv); renderInventory(); }
     fetchFromGoogleSheet();
   });
 </script>
