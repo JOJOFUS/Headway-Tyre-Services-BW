@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Headway Tyres • Stock Inventory | Fixed Search</title>
+  <title>Headway Tyres • Stock Inventory | Live Stock</title>
   
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23111111' stroke='%23f78e06' stroke-width='4' /%3E%3Ccircle cx='50' cy='50' r='18' fill='%23333' stroke='%23f78e06' stroke-width='2.5' /%3E%3Cpath fill='none' stroke='%23f78e06' stroke-width='3' d='M50 5 L50 14 M50 86 L50 95 M5 50 L14 50 M86 50 L95 50 M20.5 20.5 L27 27 M73 73 L79.5 79.5 M79.5 20.5 L73 27 M27 73 L20.5 79.5' /%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f78e06' /%3E%3C/svg%3E">
   
@@ -33,6 +33,16 @@
     .refresh-btn { background: #f1f5f9; border: 1px solid #cfdde6; padding: 8px 20px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; color: #1e293b; cursor: pointer; transition: all 0.2s; }
     .refresh-btn:hover { background: #f97316; color: white; border-color: #f97316; }
     .last-updated { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 10px; }
+    
+    /* Inline toast notification (no alert popups) */
+    .inline-toast { 
+      background: #0f172a; color: white; border-radius: 60px; padding: 8px 20px; 
+      font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.1); margin-top: 12px; transition: all 0.2s ease;
+    }
+    .inline-toast.success { background: #10b981; color: white; }
+    .inline-toast.error { background: #ef4444; }
+    .toast-message-area { text-align: center; min-height: 48px; margin-top: 8px; }
     
     .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 28px; padding: 40px 24px; max-width: 1480px; margin: 0 auto; }
     .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; cursor: pointer; }
@@ -109,6 +119,7 @@
     <button class="cat-btn" data-vehicle="Machine">🏗️ INDUSTRIAL</button>
   </div>
   <div class="last-updated" id="lastUpdatedDisplay"></div>
+  <div class="toast-message-area" id="inlineToastArea"></div>
 </div>
 
 <div class="stock-grid" id="stockGridContainer"></div>
@@ -130,6 +141,18 @@
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
   let currentInventory = [];
   let isLoading = false;
+  let toastTimeout = null;
+
+  // Helper: show inline non-intrusive message (no alert popup)
+  function showInlineMessage(message, type = "success") {
+    const area = document.getElementById("inlineToastArea");
+    if (!area) return;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    area.innerHTML = `<div class="inline-toast ${type}">${type === "success" ? "✅" : "⚠️"} ${message}</div>`;
+    toastTimeout = setTimeout(() => {
+      if (area) area.innerHTML = "";
+    }, 3200);
+  }
 
   // IMPROVED BRAND EXTRACTION - MORE FLEXIBLE
   function extractBrand(description) {
@@ -138,19 +161,16 @@
     const upperDesc = description.toUpperCase();
     for (let brand of brands) {
       const brandUpper = brand.toUpperCase();
-      // Check if brand appears at start OR after common prefixes like "NEW ", "PREMIUM "
       if (upperDesc === brandUpper || upperDesc.startsWith(brandUpper + " ") || 
           upperDesc.startsWith(brandUpper + "-") || upperDesc.includes(" " + brandUpper + " ") ||
           upperDesc.startsWith("NEW " + brandUpper) || upperDesc.startsWith("PREMIUM " + brandUpper)) {
         return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
       }
-      // Also check if the description CONTAINS the brand as a separate word
       const regex = new RegExp('\\b' + brandUpper + '\\b', 'i');
       if (regex.test(upperDesc)) {
         return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
       }
     }
-    // If no brand found, use first word as brand (fallback to show the tyre)
     const firstWord = description.split(/[\s\-]+/)[0];
     if (firstWord && firstWord.length > 2) {
       return firstWord;
@@ -292,7 +312,11 @@
   }
 
   function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
-  function updateLastUpdated() { const last = localStorage.getItem('headway_last_updated'); const el = document.getElementById('lastUpdatedDisplay'); if(el) el.innerHTML = last ? `📅 Last synced: ${new Date(parseInt(last)).toLocaleString()}` : `📅 Click refresh to sync`; }
+  function updateLastUpdated() { 
+    const last = localStorage.getItem('headway_last_updated'); 
+    const el = document.getElementById('lastUpdatedDisplay'); 
+    if(el) el.innerHTML = last ? `📅 Last synced: ${new Date(parseInt(last)).toLocaleString()}` : `📅 Click refresh to sync`; 
+  }
   
   async function fetchFromGoogleSheet() {
     if(isLoading) return;
@@ -310,12 +334,20 @@
         localStorage.setItem('headway_last_updated', Date.now().toString());
         renderInventory();
         updateLastUpdated();
-        alert(`✅ Loaded ${currentInventory.length} tyre models. DYNAMO should now appear if present.`);
-      } else throw new Error("No tyre data");
+        // ✅ No alert popup: use clean inline toast message
+        showInlineMessage(`Loaded ${currentInventory.length} tyre models. Ready!`, "success");
+      } else throw new Error("No tyre data found in sheet");
     } catch(err) {
       const stored = localStorage.getItem('headway_tyre_inventory');
-      if(stored) { currentInventory = JSON.parse(stored); renderInventory(); updateLastUpdated(); alert(`⚠️ Using cached data: ${err.message}`); }
-      else grid.innerHTML = `<div class="empty-state"><h3>❌ Failed to load</h3><p>Check Google Sheet publish settings.</p></div>`;
+      if(stored) { 
+        currentInventory = JSON.parse(stored); 
+        renderInventory(); 
+        updateLastUpdated(); 
+        showInlineMessage(`⚠️ Using cached data: ${err.message}`, "error");
+      } else {
+        if(grid) grid.innerHTML = `<div class="empty-state"><h3>❌ Failed to load</h3><p>Check Google Sheet publish settings.</p></div>`;
+        showInlineMessage(`Error: ${err.message}. Please check sheet.`, "error");
+      }
     } finally { isLoading = false; }
   }
 
@@ -323,7 +355,11 @@
     document.getElementById('globalSearch')?.addEventListener('input', () => renderInventory());
     document.getElementById('stockStatusFilter')?.addEventListener('change', () => renderInventory());
     document.getElementById('refreshBtn')?.addEventListener('click', fetchFromGoogleSheet);
-    document.querySelectorAll('.cat-btn').forEach(btn => btn.addEventListener('click', function() { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); this.classList.add('active-cat'); renderInventory(); }));
+    document.querySelectorAll('.cat-btn').forEach(btn => btn.addEventListener('click', function() { 
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); 
+      this.classList.add('active-cat'); 
+      renderInventory(); 
+    }));
     const modal = document.getElementById('tyreDetailModal');
     document.getElementById('closeModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
     modal?.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
@@ -333,7 +369,10 @@
     bindEvents();
     updateLastUpdated();
     const storedInv = localStorage.getItem('headway_tyre_inventory');
-    if(storedInv) { currentInventory = JSON.parse(storedInv); renderInventory(); }
+    if(storedInv) { 
+      currentInventory = JSON.parse(storedInv); 
+      renderInventory(); 
+    }
     fetchFromGoogleSheet();
   });
 </script>
