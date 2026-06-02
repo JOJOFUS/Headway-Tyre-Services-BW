@@ -52,6 +52,7 @@
     .stock-indicator { position: absolute; top: 16px; right: 16px; padding: 6px 14px; border-radius: 60px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; backdrop-filter: blur(4px); background: rgba(0,0,0,0.7); color: white; }
     .in-stock-tag { background: #10b981; color: white; }
     .low-stock-tag { background: #f59e0b; color: #1e1b0e; }
+    .out-of-stock-tag { background: #ef4444; color: white; }
     .card-body { padding: 1.5rem; }
     .brand-name { font-weight: 800; color: #f97316; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
     .tyre-title { font-weight: 700; font-size: 1rem; line-height: 1.3; color: #0f172a; margin-bottom: 6px; }
@@ -142,9 +143,21 @@
   let isLoading = false;
   let toastTimeout = null;
 
-  // --- CATEGORY MAPPING & DETECTION (consistent with stock logic) ---
+  // Helper: show inline non-intrusive message
+  function showInlineMessage(message, type = "success") {
+    const area = document.getElementById("inlineToastArea");
+    if (!area) return;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    area.innerHTML = `<div class="inline-toast ${type}">${type === "success" ? "✅" : "⚠️"} ${message}</div>`;
+    toastTimeout = setTimeout(() => {
+      if (area) area.innerHTML = "";
+    }, 3200);
+  }
+
+  // BRAND EXTRACTION
   function extractBrand(description) {
     const brands = ["SAILUN","BLACKHAWK","COMFORSER","HEADWAY","ROVELO","ROVELLO","DYNAMO","ROADCRUZA","TRUEFAST","LONGWAY","AUTOGRIP","HORIZON","FULLRUN","WIDEWAY","DOUBLESTAR","LINGLONG","TAISHAN","TRIANGLE","MARLIN","ZELDA","CAMEL","TAITEC","KAMON","SUNWIDE","DOVROAD","ROADX","AOTELI","ONYX","BRIGHTWAY","ECOSTAR","LIONLORD","GENTIRE","DUNLOP","KAPSEN","SAMSON","GOODAN","SAFERUN","STALLION","ROCKHOLDER","TRIPWAY","BOSSWAY","NORMAKS","GENERAL","JINYU","TRANSMATE","AG","DS","HEMISPHERE","INTERTRAC","UNIGLORY","CROSSLEADER","HONOUR","TOPRUNNER","ROADKING","RUNEVER","BRIDGESTONE","MICHELIN","GOODYEAR","CONTINENTAL","PIRELLI","YOKOHAMA","HANKOOK","KUMHO","TOYO","NEXEN","FALKEN","COOPER","MAXTREK","NANKANG","FEDERAL","ACHILLES","ACCELERA","AEOLUS"];
+    
     const upperDesc = description.toUpperCase();
     for (let brand of brands) {
       const brandUpper = brand.toUpperCase();
@@ -159,7 +172,9 @@
       }
     }
     const firstWord = description.split(/[\s\-]+/)[0];
-    if (firstWord && firstWord.length > 2) return firstWord;
+    if (firstWord && firstWord.length > 2) {
+      return firstWord;
+    }
     return "UNKNOWN";
   }
 
@@ -243,12 +258,22 @@
       const total = t.qty1 + t.qty4;
       if (stockMode === 'all-stock' && total < 1) return false;
       if (stockMode === 'low-stock' && (total < 1 || total > 5)) return false;
-      if (stockMode === 'show-all') { /* keep all */ }
+      if (stockMode === 'show-all') { /* show everything */ }
       const vehicleMatch = (vehicleCat === 'all') || (t.vehicle === vehicleCat);
       const s = searchText.toLowerCase();
       const match = s === '' || t.brand.toLowerCase().includes(s) || t.model.toLowerCase().includes(s) || t.size.toLowerCase().includes(s) || t.fullDescription?.toLowerCase().includes(s);
       return vehicleMatch && match;
     });
+  }
+
+  // Updated stock label logic: "IN STOCK" for any positive quantity (including low stock), "OUT OF STOCK" for zero
+  function getStockLabelAndClass(totalQty) {
+    if (totalQty <= 0) {
+      return { label: "OUT OF STOCK", cssClass: "out-of-stock-tag" };
+    } else {
+      // For any positive quantity, we show "IN STOCK" (no low stock text)
+      return { label: "IN STOCK", cssClass: "in-stock-tag" };
+    }
   }
 
   function renderInventory() {
@@ -266,13 +291,12 @@
     grid.innerHTML = '';
     filtered.forEach(tyre => {
       const total = tyre.qty1 + tyre.qty4;
-      let stockStatusClass = total <= 5 ? 'low-stock-tag' : 'in-stock-tag';
-      let stockLabel = total <= 5 ? (total === 0 ? 'OUT OF STOCK' : '⚠️ LOW STOCK') : 'IN STOCK';
+      const { label: stockLabel, cssClass: stockTagClass } = getStockLabelAndClass(total);
       const tyreImg = `https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format`;
       const card = document.createElement('div');
       card.className = `tyre-card`;
       card.innerHTML = `
-        <div class="img-wrapper"><img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} tyre" loading="lazy"><div class="stock-indicator ${stockStatusClass}">${stockLabel} · ${total} pcs</div></div>
+        <div class="img-wrapper"><img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} tyre" loading="lazy"><div class="stock-indicator ${stockTagClass}">${stockLabel} · ${total} pcs</div></div>
         <div class="card-body"><div class="brand-name">${escapeHtml(tyre.brand)}</div><div class="tyre-title">${escapeHtml(tyre.model)}</div><div class="size-spec">📐 ${escapeHtml(tyre.size)}</div><div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div><div class="qty-stats"><div class="qty-row-flex"><span>📦 Main Stock</span><span>${tyre.qty1} pcs</span></div><div class="qty-row-flex"><span>🏪 Secondary Stock</span><span>${tyre.qty4} pcs</span></div><div class="total-qty-line"><span>📊 Total Available</span><span>${total} pcs</span></div></div><div style="margin-top: 12px; font-size: 0.7rem; color:#f97316; text-align:center;">🔍 Click for full specifications</div></div>
       `;
       card.addEventListener('click', () => showTyreDetails(tyre));
@@ -303,10 +327,9 @@
     if(el) el.innerHTML = last ? `📅 Last synced: ${new Date(parseInt(last)).toLocaleString()}` : `📅 Click refresh to sync`; 
   }
   
-  async function fetchFromGoogleSheet(preserveCategory = true) {
+  async function fetchFromGoogleSheet() {
     if(isLoading) return;
     isLoading = true;
-    const currentActiveVehicle = preserveCategory ? (document.querySelector('.cat-btn.active-cat')?.getAttribute('data-vehicle') || 'all') : null;
     const grid = document.getElementById('stockGridContainer');
     if(grid) grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>🔄 Fetching stock from Google Sheets...</p></div>`;
     try {
@@ -318,7 +341,6 @@
         currentInventory = parsed;
         localStorage.setItem('headway_tyre_inventory', JSON.stringify(currentInventory));
         localStorage.setItem('headway_last_updated', Date.now().toString());
-        // if we need to restore category selection after load? Already active button remains, but we must reapply filter
         renderInventory();
         updateLastUpdated();
         showInlineMessage(`Loaded ${currentInventory.length} tyre models. Ready!`, "success");
@@ -340,7 +362,7 @@
   function bindEvents() {
     document.getElementById('globalSearch')?.addEventListener('input', () => renderInventory());
     document.getElementById('stockStatusFilter')?.addEventListener('change', () => renderInventory());
-    document.getElementById('refreshBtn')?.addEventListener('click', () => fetchFromGoogleSheet(true));
+    document.getElementById('refreshBtn')?.addEventListener('click', fetchFromGoogleSheet);
     document.querySelectorAll('.cat-btn').forEach(btn => btn.addEventListener('click', function() { 
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); 
       this.classList.add('active-cat'); 
@@ -351,12 +373,11 @@
     modal?.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
   }
 
-  // === NEW: Process URL parameter to auto-select category from index.html (Car, SUV, Truck, Agricultural, Machine) ===
+  // Handle URL parameter for category filtering from index.html (Car, SUV, Truck, Agricultural, Machine)
   function applyCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     let typeParam = urlParams.get('type');
     if (!typeParam) return false;
-    // Normalize: "Car", "SUV", "Truck", "Agricultural", "Machine" (case-insensitive)
     let targetVehicle = null;
     const normalized = typeParam.trim();
     if (normalized.toLowerCase() === 'car') targetVehicle = 'Car';
@@ -365,7 +386,6 @@
     else if (normalized.toLowerCase() === 'agricultural') targetVehicle = 'Agricultural';
     else if (normalized.toLowerCase() === 'machine') targetVehicle = 'Machine';
     if (targetVehicle) {
-      // Find button with data-vehicle matching target
       const targetBtn = Array.from(document.querySelectorAll('.cat-btn')).find(btn => btn.getAttribute('data-vehicle') === targetVehicle);
       if (targetBtn) {
         document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active-cat'));
@@ -376,14 +396,6 @@
     return false;
   }
 
-  function showInlineMessage(message, type = "success") {
-    const area = document.getElementById("inlineToastArea");
-    if (!area) return;
-    if (toastTimeout) clearTimeout(toastTimeout);
-    area.innerHTML = `<div class="inline-toast ${type}">${type === "success" ? "✅" : "⚠️"} ${message}</div>`;
-    toastTimeout = setTimeout(() => { if (area) area.innerHTML = ""; }, 3200);
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     updateLastUpdated();
@@ -392,18 +404,15 @@
       currentInventory = JSON.parse(storedInv); 
       renderInventory(); 
     }
-    // Apply category from URL BEFORE first render to ensure correct filter even before data loads
-    const applied = applyCategoryFromURL();
-    if (applied) {
-      // ensure that after data loads filter stays active; but render will happen again after fetch.
-      // We call renderInventory after setting active class; if inventory already exists then render now with new filter.
-      if (currentInventory.length > 0) renderInventory();
+    // Apply URL category filter before data loads so button highlight matches incoming link
+    const categorySet = applyCategoryFromURL();
+    if (categorySet && currentInventory.length > 0) {
+      renderInventory();
     }
-    fetchFromGoogleSheet(true).then(() => {
-      // after fresh data, make sure URL category still applied (if not already from cached render)
+    fetchFromGoogleSheet().then(() => {
+      // After fresh data, ensure URL parameter still overrides default (in case it got reset)
       if (applyCategoryFromURL()) {
-        renderInventory(); // re-render with selected category
-        showInlineMessage(`✨ Filtered by category: ${document.querySelector('.cat-btn.active-cat')?.getAttribute('data-vehicle')}`, "success");
+        renderInventory();
       }
     });
   });
