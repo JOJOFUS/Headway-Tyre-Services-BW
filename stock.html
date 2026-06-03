@@ -46,13 +46,71 @@
     .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 28px; padding: 40px 24px; max-width: 1480px; margin: 0 auto; }
     .tyre-card { background: white; border-radius: 28px; overflow: hidden; transition: all 0.25s ease; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border: 1px solid #eef2f8; cursor: pointer; }
     .tyre-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12); border-color: #facc1520; }
-    .img-wrapper { height: 210px; background: linear-gradient(145deg, #eef2ff, #e2e8f0); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    .tyre-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    
+    /* Enhanced tyre image styles */
+    .img-wrapper {
+      height: 210px;
+      background: linear-gradient(145deg, #eef2ff, #e2e8f0);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .tyre-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+    
     .tyre-card:hover .tyre-img { transform: scale(1.03); }
+    
+    /* Brand-specific placeholder colors */
+    .img-wrapper[data-brand="sailun"] { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+    .img-wrapper[data-brand="blackhawk"] { background: linear-gradient(135deg, #232526, #414345); }
+    .img-wrapper[data-brand="dynamo"] { background: linear-gradient(135deg, #c31432, #240b36); }
+    .img-wrapper[data-brand="sunwide"] { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
+    .img-wrapper[data-brand="headway"] { background: linear-gradient(135deg, #f78e06, #ff6a00); }
+    .img-wrapper[data-brand="rovelo"] { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .img-wrapper[data-brand="comforser"] { background: linear-gradient(135deg, #1a2980, #26d0ce); }
+    
     .stock-indicator { position: absolute; top: 16px; right: 16px; padding: 6px 14px; border-radius: 60px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; backdrop-filter: blur(4px); background: rgba(0,0,0,0.7); color: white; }
     .in-stock-tag { background: #10b981; color: white; }
     .low-stock-tag { background: #f59e0b; color: #1e1b0e; }
     .out-of-stock-tag { background: #ef4444; color: white; }
+    
+    /* Brand overlay */
+    .brand-overlay {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      z-index: 2;
+      backdrop-filter: blur(4px);
+    }
+    
+    .image-fallback {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .image-fallback span {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    
     .card-body { padding: 1.5rem; }
     .brand-name { font-weight: 800; color: #f97316; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
     .tyre-title { font-weight: 700; font-size: 1rem; line-height: 1.3; color: #0f172a; margin-bottom: 6px; }
@@ -152,6 +210,128 @@
     toastTimeout = setTimeout(() => {
       if (area) area.innerHTML = "";
     }, 3200);
+  }
+
+  // ========== TYRE IMAGE DATABASE ==========
+  const TYRE_IMAGES = {
+    // Brand-specific images
+    brands: {
+      'SAILUN': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Sailun premium tyre'
+      },
+      'BLACKHAWK': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Blackhawk performance tyre'
+      },
+      'DYNAMO': {
+        url: 'https://images.unsplash.com/photo-1560365163-5e8d6e1c0c6a?w=500&auto=format',
+        alt: 'Dynamo heavy duty tyre'
+      },
+      'SUNWIDE': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Sunwide all-terrain tyre'
+      },
+      'HEADWAY': {
+        url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=500&auto=format',
+        alt: 'Headway premium tyre'
+      },
+      'ROVELO': {
+        url: 'https://images.unsplash.com/photo-1560365163-5e8d6e1c0c6a?w=500&auto=format',
+        alt: 'Rovelo sport tyre'
+      },
+      'ROVELLO': {
+        url: 'https://images.unsplash.com/photo-1560365163-5e8d6e1c0c6a?w=500&auto=format',
+        alt: 'Rovello performance tyre'
+      },
+      'COMFORSER': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Comforser off-road tyre'
+      },
+      'BRIDGESTONE': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Bridgestone tyre'
+      },
+      'MICHELIN': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Michelin tyre'
+      },
+      'GOODYEAR': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Goodyear tyre'
+      },
+      'CONTINENTAL': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Continental tyre'
+      },
+      'PIRELLI': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Pirelli performance tyre'
+      },
+      'YOKOHAMA': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Yokohama tyre'
+      },
+      'HANKOOK': {
+        url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+        alt: 'Hankook tyre'
+      },
+      'FALKEN': {
+        url: 'https://images.unsplash.com/photo-1609526257621-2c1a41c38cae?w=500&auto=format',
+        alt: 'Falken tyre'
+      }
+    },
+    
+    // Category-specific fallback images
+    categories: {
+      'Car': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format',
+      'SUV': 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=500&auto=format',
+      'Truck': 'https://images.unsplash.com/photo-1601584115193-04b2da9d1fe9?w=500&auto=format',
+      'Agricultural': 'https://images.unsplash.com/photo-1597153758516-9d7f3b6b9d2a?w=500&auto=format',
+      'Machine': 'https://images.unsplash.com/photo-1573883431205-85b6678c3a6b?w=500&auto=format'
+    },
+    
+    // Generic fallback
+    fallback: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format'
+  };
+
+  // Function to get appropriate image for a tyre
+  function getTyreImage(brand, vehicleCategory, size) {
+    const brandUpper = brand.toUpperCase();
+    
+    // Try brand-specific image first
+    if (TYRE_IMAGES.brands[brandUpper]) {
+      return TYRE_IMAGES.brands[brandUpper];
+    }
+    
+    // Try category-specific image
+    if (TYRE_IMAGES.categories[vehicleCategory]) {
+      return {
+        url: TYRE_IMAGES.categories[vehicleCategory],
+        alt: `${vehicleCategory} tyre`
+      };
+    }
+    
+    // Return fallback
+    return {
+      url: TYRE_IMAGES.fallback,
+      alt: 'Tyre image'
+    };
+  }
+
+  // Generate SVG placeholder with brand and size
+  function getSVGPlaceholder(brand, size, vehicleCategory) {
+    const cleanBrand = brand.substring(0, 15);
+    const colorMap = {
+      'Car': '#3b82f6',
+      'SUV': '#10b981', 
+      'Truck': '#f59e0b',
+      'Agricultural': '#8b5cf6',
+      'Machine': '#ef4444'
+    };
+    const bgColor = colorMap[vehicleCategory] || '#64748b';
+    
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='${bgColor}'/%3E%3Ccircle cx='200' cy='150' r='100' fill='none' stroke='white' stroke-width='8'/%3E%3Ccircle cx='200' cy='150' r='60' fill='none' stroke='white' stroke-width='5'/%3E%3Ctext x='200' y='140' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3E${encodeURIComponent(cleanBrand)}%3C/text%3E%3Ctext x='200' y='165' text-anchor='middle' fill='white' font-size='14'%3E${encodeURIComponent(size)}%3C/text%3E%3C/svg%3E`;
   }
 
   // BRAND EXTRACTION
@@ -266,16 +446,15 @@
     });
   }
 
-  // Updated stock label logic: "IN STOCK" for any positive quantity (including low stock), "OUT OF STOCK" for zero
   function getStockLabelAndClass(totalQty) {
     if (totalQty <= 0) {
       return { label: "OUT OF STOCK", cssClass: "out-of-stock-tag" };
     } else {
-      // For any positive quantity, we show "IN STOCK" (no low stock text)
       return { label: "IN STOCK", cssClass: "in-stock-tag" };
     }
   }
 
+  // Enhanced renderInventory with image support
   function renderInventory() {
     const search = document.getElementById('globalSearch')?.value || '';
     const stockSelect = document.getElementById('stockStatusFilter')?.value || 'all-stock';
@@ -284,20 +463,43 @@
     let filtered = filterTyres(currentInventory, search, vehicleFilter, stockSelect);
     const grid = document.getElementById('stockGridContainer');
     if (!grid) return;
+    
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state"><h3>🔍 No tyres found</h3><p>Try adjusting search or filter. Brand "DYNAMO" should appear if in stock.</p></div>`;
       return;
     }
+    
     grid.innerHTML = '';
     filtered.forEach(tyre => {
       const total = tyre.qty1 + tyre.qty4;
       const { label: stockLabel, cssClass: stockTagClass } = getStockLabelAndClass(total);
-      const tyreImg = `https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format`;
+      
+      // Get appropriate image
+      const tyreImage = getTyreImage(tyre.brand, tyre.vehicle, tyre.size);
+      const tyreImg = tyreImage.url;
+      const brandSlug = tyre.brand.toLowerCase();
+      
       const card = document.createElement('div');
       card.className = `tyre-card`;
       card.innerHTML = `
-        <div class="img-wrapper"><img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} tyre" loading="lazy"><div class="stock-indicator ${stockTagClass}">${stockLabel} · ${total} pcs</div></div>
-        <div class="card-body"><div class="brand-name">${escapeHtml(tyre.brand)}</div><div class="tyre-title">${escapeHtml(tyre.model)}</div><div class="size-spec">📐 ${escapeHtml(tyre.size)}</div><div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div><div class="qty-stats"><div class="qty-row-flex"><span>📦 Main Stock</span><span>${tyre.qty1} pcs</span></div><div class="qty-row-flex"><span>🏪 Secondary Stock</span><span>${tyre.qty4} pcs</span></div><div class="total-qty-line"><span>📊 Total Available</span><span>${total} pcs</span></div></div><div style="margin-top: 12px; font-size: 0.7rem; color:#f97316; text-align:center;">🔍 Click for full specifications</div></div>
+        <div class="img-wrapper" data-brand="${brandSlug}">
+          <img class="tyre-img" src="${tyreImg}" alt="${tyreImage.alt || tyre.brand + ' tyre'}" 
+               loading="lazy" onerror="this.onerror=null; this.src='${getSVGPlaceholder(tyre.brand, tyre.size, tyre.vehicle)}'">
+          <div class="stock-indicator ${stockTagClass}">${stockLabel} · ${total} pcs</div>
+          <div class="brand-overlay">${escapeHtml(tyre.brand)}</div>
+        </div>
+        <div class="card-body">
+          <div class="brand-name">${escapeHtml(tyre.brand)}</div>
+          <div class="tyre-title">${escapeHtml(tyre.model)}</div>
+          <div class="size-spec">📐 ${escapeHtml(tyre.size)}</div>
+          <div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div>
+          <div class="qty-stats">
+            <div class="qty-row-flex"><span>📦 Main Stock</span><span>${tyre.qty1} pcs</span></div>
+            <div class="qty-row-flex"><span>🏪 Secondary Stock</span><span>${tyre.qty4} pcs</span></div>
+            <div class="total-qty-line"><span>📊 Total Available</span><span>${total} pcs</span></div>
+          </div>
+          <div style="margin-top: 12px; font-size: 0.7rem; color:#f97316; text-align:center;">🔍 Click for full specifications</div>
+        </div>
       `;
       card.addEventListener('click', () => showTyreDetails(tyre));
       grid.appendChild(card);
@@ -373,7 +575,6 @@
     modal?.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
   }
 
-  // Handle URL parameter for category filtering from index.html (Car, SUV, Truck, Agricultural, Machine)
   function applyCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     let typeParam = urlParams.get('type');
@@ -404,13 +605,11 @@
       currentInventory = JSON.parse(storedInv); 
       renderInventory(); 
     }
-    // Apply URL category filter before data loads so button highlight matches incoming link
     const categorySet = applyCategoryFromURL();
     if (categorySet && currentInventory.length > 0) {
       renderInventory();
     }
     fetchFromGoogleSheet().then(() => {
-      // After fresh data, ensure URL parameter still overrides default (in case it got reset)
       if (applyCategoryFromURL()) {
         renderInventory();
       }
