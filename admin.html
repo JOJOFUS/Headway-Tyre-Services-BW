@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Admin Portal - Headway Tyre Services</title>
 
   <!-- FAVICON: TYRE ICON -->
@@ -141,16 +141,18 @@
       border-radius: 16px;
       border: 1px solid #e2e8f0;
       background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     .stock-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.85rem;
+      min-width: 900px;
     }
 
     .stock-table th {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #1a2a4f, #2d3a6e);
       color: white;
       padding: 14px 12px;
       text-align: left;
@@ -236,7 +238,7 @@
     }
 
     .stats-bar {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #1e293b, #0f172a);
       color: white;
       padding: 20px;
       border-radius: 16px;
@@ -417,7 +419,7 @@
   
   <!-- Search Bar -->
   <div class="search-bar">
-    <input type="text" id="stockSearch" placeholder="🔍 Search by brand, model, or size...">
+    <input type="text" id="stockSearch" placeholder="🔍 Search by brand, model, or size... (e.g., Sunwide, 175/70R14)">
     <select id="categoryFilter">
       <option value="all">All Categories</option>
       <option value="Car">🚘 Car</option>
@@ -450,7 +452,6 @@
 
 <script>
   // Google Sheet CSV URL (same as stock.html)
-  // Expected columns: Item Description, Size, Qty 1, Qty 4, Price (optional - this is the base/excluding VAT price)
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQoZAdCsYacGugb2FML3PP0huDkVOerK67nuBdeho_0HPsK4tbMuYZGJEDPryJrJE2ORDkQTBo5Cb/pub?output=csv";
   
   // VAT RATE UPDATED: 14% as requested (Botswana standard updated rate)
@@ -460,47 +461,84 @@
   let isLoading = false;
   let currentStockFilter = 'all'; // 'all', 'in-stock', 'out-of-stock'
 
-  // Extract brand from description
+  // ========== IMPROVED BRAND EXTRACTION (FIX FOR "SUNWIDE", "BLACKHAWK", ETC) ==========
   function extractBrand(description) {
-    const brandPattern = /^(SAILUN|BLACKHAWK|COMFORSER|HEADWAY|ROVELO|ROVELLO|DYNAMO|ROADCRUZA|TRUEFAST|LONGWAY|AUTOGRIP|HORIZON|FULLRUN|WIDEWAY|DOUBLESTAR|LINGLONG|TAISHAN|TRIANGLE|MARLIN|ZELDA|CAMEL|TAITEC|KAMON|SUNWIDE|DOVROAD|ROADX|AOTELI|ONYX|BRIGHTWAY|ECOSTAR|LIONLORD|GENTIRE|DUNLOP|KAPSEN|SAMSON|GOODAN|SAFERUN|STALLION|ROCKHOLDER|TRIPWAY|BOSSWAY|NORMAKS|GENERAL|JINYU|TRANSMATE|AG|DS|HEMISPHERE|INTERTRAC|UNIGLORY|CROSSLEADER|HONOUR|TOPRUNNER|ROADKING|RUNEVER|BRIDGESTONE|MICHELIN|GOODYEAR|CONTINENTAL|PIRELLI|YOKOHAMA|HANKOOK|KUMHO|TOYO|NEXEN|FALKEN|COOPER|MAXTREK|NANKANG|FEDERAL|ACHILLES|ACCELERA|AEOLUS)/i;
-    const match = description.match(brandPattern);
-    if (match) {
-      return match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
+    // Expanded brand list including all common tyre brands that may appear
+    const brands = [
+      "SAILUN", "BLACKHAWK", "COMFORSER", "HEADWAY", "ROVELO", "ROVELLO", "DYNAMO", 
+      "ROADCRUZA", "TRUEFAST", "LONGWAY", "AUTOGRIP", "HORIZON", "FULLRUN", "WIDEWAY", 
+      "DOUBLESTAR", "LINGLONG", "TAISHAN", "TRIANGLE", "MARLIN", "ZELDA", "CAMEL", 
+      "TAITEC", "KAMON", "SUNWIDE", "DOVROAD", "ROADX", "AOTELI", "ONYX", "BRIGHTWAY", 
+      "ECOSTAR", "LIONLORD", "GENTIRE", "DUNLOP", "KAPSEN", "SAMSON", "GOODAN", "SAFERUN", 
+      "STALLION", "ROCKHOLDER", "TRIPWAY", "BOSSWAY", "NORMAKS", "GENERAL", "JINYU", 
+      "TRANSMATE", "AG", "DS", "HEMISPHERE", "INTERTRAC", "UNIGLORY", "CROSSLEADER", 
+      "HONOUR", "TOPRUNNER", "ROADKING", "RUNEVER", "BRIDGESTONE", "MICHELIN", "GOODYEAR", 
+      "CONTINENTAL", "PIRELLI", "YOKOHAMA", "HANKOOK", "KUMHO", "TOYO", "NEXEN", "FALKEN", 
+      "COOPER", "MAXTREK", "NANKANG", "FEDERAL", "ACHILLES", "ACCELERA", "AEOLUS", 
+      "SUMEC", "WANLI", "CHAOYANG", "DOUBLESTAR", "LANDSAIL", "MAXXIS", "GT RADIAL"
+    ];
+    
+    const upperDesc = description.toUpperCase().trim();
+    
+    // Special handling for exact brand at start (most common pattern)
+    for (let brand of brands) {
+      const brandUpper = brand.toUpperCase();
+      // Match brand at beginning of string, possibly followed by space, dash, or number
+      const regex = new RegExp('^' + brandUpper + '(?:\\s|\\-|$)', 'i');
+      if (regex.test(upperDesc)) {
+        return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
+      }
+      // Also match brand anywhere as whole word (but prioritize start)
+      const wordRegex = new RegExp('\\b' + brandUpper + '\\b', 'i');
+      if (wordRegex.test(upperDesc)) {
+        return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
+      }
     }
-    return null;
+    
+    // Fallback: try to extract first word that is not a size pattern
+    const firstWord = description.split(/[\s\-]+/)[0];
+    if (firstWord && firstWord.length > 2 && !/^\d+/.test(firstWord)) {
+      return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+    }
+    
+    return "UNKNOWN";
   }
 
-  // Detect vehicle category
+  // Detect vehicle category (improved)
   function detectVehicleCategory(brand, model, size) {
     const sizeUpper = size.toUpperCase();
     const modelUpper = model.toUpperCase();
+    const fullDesc = (brand + " " + model).toUpperCase();
     
     if (sizeUpper.includes('R22.5') || sizeUpper.includes('R19.5') || sizeUpper.includes('R17.5') ||
         sizeUpper.includes('R20') && (parseInt(sizeUpper) >= 8 || modelUpper.includes('TRUCK')) ||
         modelUpper.includes('TRUCK') || modelUpper.includes('BUS') || modelUpper.includes('REGIONAL') ||
-        modelUpper.includes('LONGHAUL')) {
+        modelUpper.includes('LONGHAUL') || fullDesc.includes('TRUCK')) {
       return "Truck";
     }
     
     if (modelUpper.includes('TRACTOR') || modelUpper.includes('AGRI') || sizeUpper.includes('R24') || 
-        sizeUpper.includes('R28') || sizeUpper.includes('R34')) {
+        sizeUpper.includes('R28') || sizeUpper.includes('R34') || fullDesc.includes('AGRICULTURAL')) {
       return "Agricultural";
     }
     
     if (modelUpper.includes('LOADER') || modelUpper.includes('INDUSTRIAL') || modelUpper.includes('L5') ||
-        sizeUpper.includes('L5') || sizeUpper.includes('E3') || modelUpper.includes('JCB')) {
+        sizeUpper.includes('L5') || sizeUpper.includes('E3') || modelUpper.includes('JCB') ||
+        fullDesc.includes('INDUSTRIAL') || fullDesc.includes('MACHINE')) {
       return "Machine";
     }
     
     if (modelUpper.includes('SUV') || modelUpper.includes('A/T') || modelUpper.includes('M/T') || 
-        modelUpper.includes('TERRAMAX') || (sizeUpper.includes('LT') && !sizeUpper.includes('C'))) {
+        modelUpper.includes('TERRAMAX') || (sizeUpper.includes('LT') && !sizeUpper.includes('C')) ||
+        fullDesc.includes('SUV')) {
       return "SUV";
     }
     
+    // Default to Car for passenger car tyres
     return "Car";
   }
 
-  // Check if item is a tyre
+  // Check if item is a tyre (exclude non-tyre items)
   function isTyreItem(description, size) {
     const skipKeywords = [
       "FITTING", "BALANCING", "ALIGNMENT", "PATCH", "REPAIR", "SERVICE", "LABOUR",
@@ -513,13 +551,13 @@
     for (const kw of skipKeywords) {
       if (upperDesc.includes(kw)) return false;
     }
-    if (!size || size === "VARIOUS" || size === "ASSORTED") {
+    if (!size || size === "VARIOUS" || size === "ASSORTED" || size.trim() === "") {
       return false;
     }
     return true;
   }
 
-  // Calculate price including VAT (updated to 14%)
+  // Calculate price including VAT (14%)
   function getPriceWithVAT(priceExcluding) {
     if (priceExcluding && !isNaN(parseFloat(priceExcluding)) && parseFloat(priceExcluding) > 0) {
       return parseFloat(priceExcluding) * (1 + VAT_RATE);
@@ -543,13 +581,13 @@
     let startRow = 0;
     let priceColumnIndex = -1;
     
-    // Check header row for price column
-    for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    // Find header row and price column
+    for (let i = 0; i < Math.min(lines.length, 15); i++) {
       const line = lines[i].toLowerCase();
       if ((line.includes('item') && line.includes('description')) || 
           (line.includes('size') && line.includes('qty'))) {
         startRow = i + 1;
-        // Check if this header line has a price column
+        // Parse header columns for price
         const headerParts = lines[i].split(',');
         for (let p = 0; p < headerParts.length; p++) {
           if (headerParts[p].toLowerCase().includes('price')) {
@@ -562,12 +600,13 @@
     }
     
     const inventory = [];
+    const seenKeys = new Set(); // Avoid duplicates
     
     for (let i = startRow; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
-      // Parse CSV line
+      // Parse CSV line respecting quotes
       const columns = [];
       let current = '';
       let inQuotes = false;
@@ -591,7 +630,7 @@
       let qty1 = parseInt(columns[2], 10) || 0;
       let qty4 = columns.length > 3 ? (parseInt(columns[3], 10) || 0) : 0;
       
-      // Extract price if available (this is the base/excluding VAT price)
+      // Extract price if available (base/excluding VAT)
       let priceExcludingVAT = null;
       if (priceColumnIndex >= 0 && columns.length > priceColumnIndex) {
         const priceStr = columns[priceColumnIndex].replace(/^["']|["']$/g, '').trim();
@@ -599,7 +638,6 @@
           priceExcludingVAT = parseFloat(priceStr);
         }
       } else if (columns.length > 4) {
-        // Try column 4 as price
         const priceStr = columns[4].replace(/^["']|["']$/g, '').trim();
         if (priceStr && !isNaN(parseFloat(priceStr))) {
           priceExcludingVAT = parseFloat(priceStr);
@@ -609,35 +647,68 @@
       if (!description || !size) continue;
       if (!isTyreItem(description, size)) continue;
       
+      // Improved brand extraction
       let brand = extractBrand(description);
-      if (!brand) continue;
+      if (!brand || brand === "UNKNOWN") {
+        // Fallback: try to infer from description
+        const firstToken = description.split(/[\s\-]+/)[0];
+        if (firstToken && firstToken.length > 2 && !/^\d/.test(firstToken)) {
+          brand = firstToken.charAt(0).toUpperCase() + firstToken.slice(1).toLowerCase();
+        } else {
+          brand = "GENERIC";
+        }
+      }
       
-      let model = description.replace(new RegExp(brand, 'i'), '').trim();
+      // Extract model name (remove brand from description)
+      let model = description;
+      const brandRegex = new RegExp('^' + brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      model = model.replace(brandRegex, '').trim();
       if (!model) model = description.substring(0, 60);
       if (model.length > 60) model = model.substring(0, 57) + "...";
       
-      size = size.replace(/^0[5-9]-/, '');
+      // Clean size format
+      size = size.replace(/^0[5-9]-/, '').trim();
       const vehicle = detectVehicleCategory(brand, model, size);
       const totalQty = qty1 + qty4;
       
-      // Calculate price including VAT using the new 14% rate
+      // Calculate price including VAT
       let priceIncludingVAT = getPriceWithVAT(priceExcludingVAT);
       
-      // Include ALL items, even those with zero stock
-      inventory.push({
-        brand: brand,
-        model: model,
-        size: size,
-        vehicle: vehicle,
-        qty1: qty1,
-        qty4: qty4,
-        totalQty: totalQty,
-        priceExcludingVAT: priceExcludingVAT,
-        priceIncludingVAT: priceIncludingVAT,
-        fullDescription: description
-      });
+      // Use composite key to avoid duplicates (important for accurate counting)
+      const uniqueKey = `${brand}|${model}|${size}`;
+      if (seenKeys.has(uniqueKey)) {
+        // If duplicate, combine quantities
+        const existing = inventory.find(item => 
+          item.brand === brand && item.model === model && item.size === size);
+        if (existing) {
+          existing.qty1 += qty1;
+          existing.qty4 += qty4;
+          existing.totalQty = existing.qty1 + existing.qty4;
+          // Keep the first price if available
+          if (existing.priceExcludingVAT === null && priceExcludingVAT !== null) {
+            existing.priceExcludingVAT = priceExcludingVAT;
+            existing.priceIncludingVAT = getPriceWithVAT(priceExcludingVAT);
+          }
+        }
+      } else {
+        seenKeys.add(uniqueKey);
+        inventory.push({
+          brand: brand,
+          model: model,
+          size: size,
+          vehicle: vehicle,
+          qty1: qty1,
+          qty4: qty4,
+          totalQty: totalQty,
+          priceExcludingVAT: priceExcludingVAT,
+          priceIncludingVAT: priceIncludingVAT,
+          fullDescription: description
+        });
+      }
     }
     
+    // Sort by brand then model
+    inventory.sort((a, b) => a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model));
     return inventory;
   }
 
@@ -691,31 +762,30 @@
     }
   }
 
-  // Render stock table
+  // Render stock table with enhanced search
   function renderStockTable() {
     const container = document.getElementById('stockTableContainer');
     if (!container) return;
     
-    const searchTerm = document.getElementById('stockSearch')?.value.toLowerCase() || '';
+    const searchTerm = document.getElementById('stockSearch')?.value.toLowerCase().trim() || '';
     const categoryFilter = document.getElementById('categoryFilter')?.value || 'all';
     
     let filtered = [...currentInventory];
     
-    // Apply stock status filter (includes out-of-stock items)
+    // Apply stock status filter
     if (currentStockFilter === 'in-stock') {
       filtered = filtered.filter(t => t.totalQty > 0);
     } else if (currentStockFilter === 'out-of-stock') {
       filtered = filtered.filter(t => t.totalQty === 0);
     }
-    // 'all' shows everything including zero stock
     
-    // Apply search filter
+    // Enhanced search: matches brand, model, size, or full description
     if (searchTerm) {
       filtered = filtered.filter(t => 
         t.brand.toLowerCase().includes(searchTerm) ||
         t.model.toLowerCase().includes(searchTerm) ||
         t.size.toLowerCase().includes(searchTerm) ||
-        t.fullDescription?.toLowerCase().includes(searchTerm)
+        (t.fullDescription && t.fullDescription.toLowerCase().includes(searchTerm))
       );
     }
     
@@ -725,7 +795,7 @@
     }
     
     if (filtered.length === 0) {
-      container.innerHTML = `<div class="no-data"><h3>🔍 No tyres found</h3><p>Try adjusting your search or category filter.</p></div>`;
+      container.innerHTML = `<div class="no-data"><h3>🔍 No tyres found</h3><p>Try adjusting your search or category filter. Example: "Sunwide" or "175/70R14"</p></div>`;
       return;
     }
     
@@ -759,7 +829,7 @@
               <tr class="${rowClass}">
                 <td><strong>${escapeHtml(tyre.brand)}</strong></td>
                 <td>${escapeHtml(tyre.model)}</td>
-                <td><code>${escapeHtml(tyre.size)}</code></td>
+                <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:12px;">${escapeHtml(tyre.size)}</code></td>
                 <td><span class="category-badge category-${tyre.vehicle}">${tyre.vehicle}</span></td>
                 <td>${tyre.qty1}</td>
                 <td>${tyre.qty4}</td>
@@ -770,7 +840,7 @@
             `;
           }).join('')}
         </tbody>
-       </table>
+      </table>
     `;
     
     container.innerHTML = tableHtml;
@@ -815,7 +885,7 @@
     const lastSync = localStorage.getItem('headway_last_sync');
     if (lastSyncEl && lastSync) {
       const date = new Date(parseInt(lastSync));
-      lastSyncEl.textContent = date.toLocaleTimeString();
+      lastSyncEl.textContent = date.toLocaleString();
     } else if (lastSyncEl) {
       lastSyncEl.textContent = 'Not synced';
     }
@@ -881,7 +951,7 @@
       
       loadCachedInventory();
       setupEventListeners();
-      fetchFromGoogleSheet(); // Fetch fresh data
+      fetchFromGoogleSheet();
     } else {
       loginError.style.display = 'block';
       loginError.textContent = '❌ Incorrect username or password. Access denied.';
