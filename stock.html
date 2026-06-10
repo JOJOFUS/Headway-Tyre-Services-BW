@@ -84,13 +84,6 @@
     .contact-reminder { margin-top: 8px; font-weight: 500; color: #f97316; }
     footer { background: #0f172a; text-align: center; padding: 28px; color: #94a3b8; font-size: 0.8rem; }
     @media (max-width: 680px) { .stock-grid { gap: 18px; padding: 20px 16px; } .filter-row input, .filter-row select { width: 100%; } }
-    
-    /* Brand colors for card accents */
-    .tyre-card[data-brand="bridgestone"] .brand-name { color: #e63946; }
-    .tyre-card[data-brand="michelin"] .brand-name { color: #0066cc; }
-    .tyre-card[data-brand="goodyear"] .brand-name { color: #002a5c; }
-    .tyre-card[data-brand="continental"] .brand-name { color: #ff5f00; }
-    .tyre-card[data-brand="pirelli"] .brand-name { color: #d10000; }
   </style>
 </head>
 <body>
@@ -150,106 +143,6 @@
   let isLoading = false;
   let toastTimeout = null;
 
-  // ========== NEW: SMART TYRE IMAGE GENERATOR ==========
-  // High-quality tyre images for different brands and vehicle types
-  const brandImageMap = {
-    'BRIDGESTONE': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'MICHELIN': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'GOODYEAR': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'CONTINENTAL': 'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-    'PIRELLI': 'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-    'YOKOHAMA': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'HANKOOK': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'KUMHO': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'TOYO': 'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-    'NEXEN': 'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-    'FALKEN': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'DUNLOP': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'COOPER': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'SAILUN': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'BLACKHAWK': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'COMFORSER': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'HEADWAY': 'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-    'DYNAMO': 'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-    'SUNWIDE': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'ROADCRUZA': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'TRUEFAST': 'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-    'LONGWAY': 'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-    'AUTOGRIP': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'TRIANGLE': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-    'LINGLONG': 'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-    'AEOLUS': 'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-    'GT RADIAL': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537'
-  };
-
-  // Vehicle type specific images (fallback)
-  const vehicleTypeImages = {
-    'Car': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-    'SUV': 'https://images.unsplash.com/photo-1533473359331-84c1ba6882b5',
-    'Truck': 'https://images.unsplash.com/photo-1580894908361-967195033215',
-    'Agricultural': 'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d',
-    'Machine': 'https://images.unsplash.com/photo-1573496774426-fe3db3dd1731'
-  };
-
-  function getTyreImage(brand, size, vehicle, model) {
-    // Normalize brand name for lookup
-    const brandUpper = (brand || '').toUpperCase().trim();
-    let imageUrl = null;
-    
-    // 1. Try to get brand-specific image
-    for (const [knownBrand, url] of Object.entries(brandImageMap)) {
-      if (brandUpper.includes(knownBrand) || knownBrand.includes(brandUpper)) {
-        imageUrl = url;
-        break;
-      }
-    }
-    
-    // 2. If no brand image, use vehicle type image
-    if (!imageUrl && vehicle) {
-      imageUrl = vehicleTypeImages[vehicle] || vehicleTypeImages['Car'];
-    }
-    
-    // 3. Final fallback
-    if (!imageUrl) {
-      imageUrl = 'https://images.unsplash.com/photo-1580273916550-e323be2ae537';
-    }
-    
-    // Add unique query parameters to ensure different images for different tyres
-    // This creates variety while maintaining fast loading
-    const uniqueId = `${brandUpper}_${size.replace(/[^a-zA-Z0-9]/g, '')}_${model.substring(0, 10)}`;
-    const hash = simpleHash(uniqueId);
-    
-    // Use different Unsplash images based on hash to create variety
-    const alternativeImages = [
-      'https://images.unsplash.com/photo-1580273916550-e323be2ae537',
-      'https://images.unsplash.com/photo-1609521263047-f8f205293f24',
-      'https://images.unsplash.com/photo-1580274357437-8569ef4b3b7c',
-      'https://images.unsplash.com/photo-1575639035525-7c229a339bc1',
-      'https://images.unsplash.com/photo-1609521297750-41eade0b0fa6',
-      'https://images.unsplash.com/photo-1580273916550-e323be2ae537'
-    ];
-    
-    // If it's a common brand, keep its image; otherwise add variety
-    const isCommonBrand = Object.keys(brandImageMap).some(b => brandUpper.includes(b));
-    if (!isCommonBrand && vehicle) {
-      const hashIndex = hash % alternativeImages.length;
-      imageUrl = alternativeImages[hashIndex];
-    }
-    
-    // Add sizing parameters and unique signature to prevent caching issues
-    return `${imageUrl}?w=500&h=210&fit=crop&auto=format&sig=${hash}`;
-  }
-  
-  function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash);
-  }
-
   // Helper: show inline non-intrusive message
   function showInlineMessage(message, type = "success") {
     const area = document.getElementById("inlineToastArea");
@@ -261,9 +154,9 @@
     }, 3200);
   }
 
-  // BRAND EXTRACTION (improved for better image matching)
+  // BRAND EXTRACTION
   function extractBrand(description) {
-    const brands = ["SAILUN","BLACKHAWK","COMFORSER","HEADWAY","ROVELO","ROVELLO","DYNAMO","ROADCRUZA","TRUEFAST","LONGWAY","AUTOGRIP","HORIZON","FULLRUN","WIDEWAY","DOUBLESTAR","LINGLONG","TAISHAN","TRIANGLE","MARLIN","ZELDA","CAMEL","TAITEC","KAMON","SUNWIDE","DOVROAD","ROADX","AOTELI","ONYX","BRIGHTWAY","ECOSTAR","LIONLORD","GENTIRE","DUNLOP","KAPSEN","SAMSON","GOODAN","SAFERUN","STALLION","ROCKHOLDER","TRIPWAY","BOSSWAY","NORMAKS","GENERAL","JINYU","TRANSMATE","AG","DS","HEMISPHERE","INTERTRAC","UNIGLORY","CROSSLEADER","HONOUR","TOPRUNNER","ROADKING","RUNEVER","BRIDGESTONE","MICHELIN","GOODYEAR","CONTINENTAL","PIRELLI","YOKOHAMA","HANKOOK","KUMHO","TOYO","NEXEN","FALKEN","COOPER","MAXTREK","NANKANG","FEDERAL","ACHILLES","ACCELERA","AEOLUS","SUMEC","WANLI","CHAOYANG","LANDSAIL","MAXXIS","GT RADIAL"];
+    const brands = ["SAILUN","BLACKHAWK","COMFORSER","HEADWAY","ROVELO","ROVELLO","DYNAMO","ROADCRUZA","TRUEFAST","LONGWAY","AUTOGRIP","HORIZON","FULLRUN","WIDEWAY","DOUBLESTAR","LINGLONG","TAISHAN","TRIANGLE","MARLIN","ZELDA","CAMEL","TAITEC","KAMON","SUNWIDE","DOVROAD","ROADX","AOTELI","ONYX","BRIGHTWAY","ECOSTAR","LIONLORD","GENTIRE","DUNLOP","KAPSEN","SAMSON","GOODAN","SAFERUN","STALLION","ROCKHOLDER","TRIPWAY","BOSSWAY","NORMAKS","GENERAL","JINYU","TRANSMATE","AG","DS","HEMISPHERE","INTERTRAC","UNIGLORY","CROSSLEADER","HONOUR","TOPRUNNER","ROADKING","RUNEVER","BRIDGESTONE","MICHELIN","GOODYEAR","CONTINENTAL","PIRELLI","YOKOHAMA","HANKOOK","KUMHO","TOYO","NEXEN","FALKEN","COOPER","MAXTREK","NANKANG","FEDERAL","ACHILLES","ACCELERA","AEOLUS"];
     
     const upperDesc = description.toUpperCase();
     for (let brand of brands) {
@@ -373,10 +266,12 @@
     });
   }
 
+  // Updated stock label logic: "IN STOCK" for any positive quantity (including low stock), "OUT OF STOCK" for zero
   function getStockLabelAndClass(totalQty) {
     if (totalQty <= 0) {
       return { label: "OUT OF STOCK", cssClass: "out-of-stock-tag" };
     } else {
+      // For any positive quantity, we show "IN STOCK" (no low stock text)
       return { label: "IN STOCK", cssClass: "in-stock-tag" };
     }
   }
@@ -397,15 +292,11 @@
     filtered.forEach(tyre => {
       const total = tyre.qty1 + tyre.qty4;
       const { label: stockLabel, cssClass: stockTagClass } = getStockLabelAndClass(total);
-      // NEW: Get smart tyre image
-      const tyreImg = getTyreImage(tyre.brand, tyre.size, tyre.vehicle, tyre.model);
-      // Create a data attribute for brand-specific styling
-      const brandSlug = tyre.brand.toLowerCase().replace(/[^a-z]/g, '');
+      const tyreImg = `https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format`;
       const card = document.createElement('div');
       card.className = `tyre-card`;
-      card.setAttribute('data-brand', brandSlug);
       card.innerHTML = `
-        <div class="img-wrapper"><img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} ${escapeHtml(tyre.model)} tyre" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&auto=format'"><div class="stock-indicator ${stockTagClass}">${stockLabel} · ${total} pcs</div></div>
+        <div class="img-wrapper"><img class="tyre-img" src="${tyreImg}" alt="${escapeHtml(tyre.brand)} tyre" loading="lazy"><div class="stock-indicator ${stockTagClass}">${stockLabel} · ${total} pcs</div></div>
         <div class="card-body"><div class="brand-name">${escapeHtml(tyre.brand)}</div><div class="tyre-title">${escapeHtml(tyre.model)}</div><div class="size-spec">📐 ${escapeHtml(tyre.size)}</div><div class="vehicle-cat">${escapeHtml(tyre.vehicle)}</div><div class="qty-stats"><div class="qty-row-flex"><span>📦 Main Stock</span><span>${tyre.qty1} pcs</span></div><div class="qty-row-flex"><span>🏪 Secondary Stock</span><span>${tyre.qty4} pcs</span></div><div class="total-qty-line"><span>📊 Total Available</span><span>${total} pcs</span></div></div><div style="margin-top: 12px; font-size: 0.7rem; color:#f97316; text-align:center;">🔍 Click for full specifications</div></div>
       `;
       card.addEventListener('click', () => showTyreDetails(tyre));
@@ -482,6 +373,7 @@
     modal?.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
   }
 
+  // Handle URL parameter for category filtering from index.html (Car, SUV, Truck, Agricultural, Machine)
   function applyCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     let typeParam = urlParams.get('type');
@@ -512,11 +404,13 @@
       currentInventory = JSON.parse(storedInv); 
       renderInventory(); 
     }
+    // Apply URL category filter before data loads so button highlight matches incoming link
     const categorySet = applyCategoryFromURL();
     if (categorySet && currentInventory.length > 0) {
       renderInventory();
     }
     fetchFromGoogleSheet().then(() => {
+      // After fresh data, ensure URL parameter still overrides default (in case it got reset)
       if (applyCategoryFromURL()) {
         renderInventory();
       }
